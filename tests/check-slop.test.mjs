@@ -243,9 +243,10 @@ test('v2.1 code context: routing, scratch files and the --context code list', ()
   assert.match(list, /code-swallowed-errors/);
   assert.match(list, /Code: it builds/);
 });
-test('v2.1 code: the clean example passes and the sloppy one is caught', () => {
-  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const clean = path.join(root, 'examples', 'code', 'clean.js'), sloppy = path.join(root, 'examples', 'code', 'sloppy.js');
+// Vendored copies carry tests/ but not examples/, so this one runs only where the examples are.
+const EXAMPLES = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'examples', 'code');
+test('v2.1 code: the clean example passes and the sloppy one is caught', { skip: !fs.existsSync(EXAMPLES) && 'examples/ not present (vendored copy)' }, () => {
+  const clean = path.join(EXAMPLES, 'clean.js'), sloppy = path.join(EXAMPLES, 'sloppy.js');
   assert.deepEqual(checkText(fs.readFileSync(clean, 'utf8'), 'code', clean, { context: 'code' }).map((f) => `${f.rule}: ${f.evidence}`), []);
   assert.ok(rulesHit(checkText(fs.readFileSync(sloppy, 'utf8'), 'code', sloppy, { context: 'code' })).size >= 10);
 });
