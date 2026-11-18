@@ -1,6 +1,6 @@
 ---
 name: slop-guard
-description: Anti-slop rules for any AI-made work, split by context (websites, app and dashboard UI, decks, documents and reports, social and marketing copy, imagery), with a checker (check-slop.mjs) that needs no dependencies and a done checklist. Use before you deliver or review anything an AI helped make, such as a page, prototype, dashboard, deck, report, post or image brief, and whenever a QA, review or proof step runs. It is the gate; impeccable, design-taste-frontend and the deslop skills are deeper tools to run alongside when they are installed.
+description: Anti-slop rules for any AI-made work, split by context (websites, app and dashboard UI, decks, documents and reports, social and marketing copy, imagery, and code in JavaScript, TypeScript and Python), with a checker (check-slop.mjs) that needs no dependencies and a done checklist. Use before you deliver or review anything an AI helped make, such as a page, prototype, dashboard, deck, report, post, image brief or code change, and whenever a QA, review or proof step runs. It is the gate; impeccable, design-taste-frontend and the deslop skills are deeper tools to run alongside when they are installed.
 ---
 
 # slop-guard
@@ -12,23 +12,28 @@ One set of anti-slop rules, split by context, with a checker for the rules a mac
 | File | What it is |
 |---|---|
 | `rules.json` | The rules. Each has an id, the pattern to avoid (`dont`), what to do instead, the contexts it applies to, how to check it (machine, screenshot, judgement), a severity, and a detector name when the checker can find it. Change rules here and nowhere else. |
-| `check-slop.mjs` | The checker. It reads HTML, CSS, Markdown and plain text. No dependencies. |
+| `check-slop.mjs` | The checker. It reads HTML, CSS, Markdown, plain text, and JavaScript, TypeScript and Python source. No dependencies. |
 | `RULES.md` | The rules listed per context. Generated: `node check-slop.mjs --rules-md > RULES.md`. |
 | `tests/` | Planted problems and clean samples. Run `node --test tests/check-slop.test.mjs`. |
-| `examples/` | A sloppy and a clean landing page, dashboard and post, with the checker's output and screenshots. |
+| `examples/` | A sloppy and a clean landing page, dashboard, post and JavaScript file, with the checker's output (and screenshots for the pages). |
 
 ## Which rules apply where
 
 | Context | Use it for | The checker looks for | Check by eye |
 |---|---|---|---|
-| `web` | Websites, landing pages, portfolios | CSS and HTML patterns, page basics, copy tells | Layout rhythm, the stock landing page, imagery, icons, colour balance |
-| `app` | App and dashboard UI, HTML prototypes | CSS and HTML patterns, controls with no name, vague button labels | Repeated cards, filler charts, status chips that never change, missing states |
+| `web` | Websites, landing pages, portfolios | CSS and HTML patterns, page basics, copy tells, dead links, unlabelled fields, blocked zoom, small tap targets, straight quotes in visible text | Layout rhythm, the stock landing page, imagery, icons, colour balance |
+| `app` | App and dashboard UI, HTML prototypes | CSS and HTML patterns, controls with no name, vague button labels, field types, charts with no text, hover-only actions, generic error copy | Repeated cards, filler charts, status chips that never change, missing states, form errors, action feedback |
 | `deck` | Decks and slides | Copy tells in exported text; CSS patterns in HTML decks | Everything centred, tile grids, stock faces, type hierarchy |
-| `doc` | Research reports, briefs, write-ups | Hype and filler words, placeholders, made-up proof, nameless authority, hedging, emoji and code-style headings | Filler charts, heading order, line length, invented details |
+| `doc` | Research reports, briefs, write-ups | Hype and filler words, placeholders, made-up proof, nameless authority, hedging, emoji and code-style headings, cutoff disclaimers, stock endings, bold sprinkled through paragraphs | Filler charts, heading order, line length, invented details, one thing called by many names |
 | `copy` | Social posts, captions, emails, ads | Hype words, stock lines, engagement bait, canned courtesies, exclamation marks | Claims about what it does and for whom; the same voice for every client |
 | `image` | Generated or chosen imagery | Nothing yet | Floating 3D shapes, stock faces, blob crops, fake grain, the AI palette |
+| `code` | Code changes in JavaScript, TypeScript and Python | Comments that narrate the code, debug output, dead and commented-out code, swallowed errors, pass-through wrappers, generic names, casts and `any`, TODO residue, style drift, unused imports, deep nesting, docstring bloat, vague error messages, notes files left in the change | Scope creep, tests that only test their mocks, layers nobody asked for |
 
-Pick the context by the work, not the project. A research-only project uses `doc` (and `deck` for readouts), never the web rules.
+Pick the context by the work, not the project. A research-only project uses `doc` (and `deck` for readouts), never the web rules. Code is checked only under `code`, and `code` skips pages and stylesheets.
+
+## Quote marks
+
+Text people read on a page, slide or document uses curly quotes and apostrophes (‘ ’ “ ”). Code, Markdown source, commands and HTML attributes keep straight quotes. The checker flags straight quotes only in the visible text of HTML, never in attributes, `<code>`, `<pre>` or Markdown.
 
 ## Typography: choose and record a pairing before you build
 
@@ -61,7 +66,7 @@ The record goes in the project's tokens or design notes:
 3. **Then check by eye** what the machine cannot: `node check-slop.mjs --rubric --context <c>` lists those rows. Look at anything on screen at 390, 820 and 1280 px.
 4. **Report** what you checked and what you could not check, using the done checklist at the end of each context in `RULES.md`.
 
-Severity: **high** is a defect (unreadable text, a control with no name, placeholder or made-up content). **Medium** is a pattern to remove or justify. **Low** asks you to confirm it was on purpose.
+Severity: high is a defect (unreadable text, a control with no name, placeholder or made-up content). Medium is a pattern to remove or justify. Low asks you to confirm it was on purpose.
 
 ## How it relates to other skills
 
@@ -70,6 +75,7 @@ slop-guard is the gate: one rules file, one checker, one checklist. The tools be
 - `impeccable` gives design direction, critique and its own browser-based detector. Use it to design or fix a page. Use slop-guard to check the result.
 - `design-taste-frontend` (taste-skill) builds whole company websites and runs its own copy linter and finish gate in a real browser.
 - `deslop-ui` and `deslop-writing` are review checklists for interfaces and prose. `deslop-writing` has a much longer word list than this checker.
+- A de-slop skill that edits code, product and prose in place does the cleaning; run the `code` context afterwards to check what is left.
 
 When they disagree, record the choice you made and why.
 
@@ -87,7 +93,9 @@ The rules draw on several sources, credited here once rather than rule by rule:
 - Chiranjeet Banerjee's own anti-slop and type pairing rules
 - [Impeccable](https://github.com/pbakaus/impeccable), Apache-2.0
 - [taste-skill](https://github.com/Leonxlnx/taste-skill), MIT
-- The ideas behind [deslop-skills](https://github.com/kmaida/deslop-skills), rewritten in our own words (it has no licence file, so none of its text is used)
-- General UI, accessibility and plain-writing practice
+- [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill), MIT
+- The de-slop skill in [iamladi's primitives plugin](https://github.com/iamladi/cautious-computing-machine--primitives-plugin), MIT
+- Ideas from [deslop-skills](https://github.com/kmaida/deslop-skills) and from the de-slop skill in [shipshitdev/skills](https://github.com/shipshitdev/skills), rewritten in our own words (neither has a licence file, so none of their text is used)
+- General UI, accessibility, code review and plain-writing practice
 
 The licence notices are in `NOTICE`.

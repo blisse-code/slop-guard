@@ -1,10 +1,10 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "context": "web",
   "counts": {
     "high": 4,
-    "medium": 46,
-    "low": 18
+    "medium": 54,
+    "low": 19
   },
   "files": 1,
   "findings": [
@@ -259,6 +259,36 @@
       "instead": "Keep only the navigation fixed (plus one action bar on phones); put the newsletter signup in the footer."
     },
     {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 43,
+      "evidence": "<a href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 43,
+      "evidence": "<a href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 43,
+      "evidence": "<a class=\"cta\" href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
       "rule": "eyebrow-label",
       "detector": "eyebrow",
       "severity": "medium",
@@ -357,6 +387,26 @@
       "evidence": "in just a few clicks",
       "message": "\"in just a few clicks\" fits any business: say what this one does, for whom.",
       "instead": "Say what this business does, for whom, with one fact from the brief."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 49,
+      "evidence": "<a class=\"cta\" href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 49,
+      "evidence": "<a class=\"ghost\" href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
     },
     {
       "rule": "auto-advancing",
@@ -479,6 +529,36 @@
       "instead": "Only show logos of real clients, using their official files. No clients yet? Leave the strip out."
     },
     {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 72,
+      "evidence": "<a class=\"cta\" href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 73,
+      "evidence": "<a class=\"cta\" href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 74,
+      "evidence": "<a class=\"cta\" href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
       "rule": "vague-controls",
       "detector": "vague-control",
       "severity": "medium",
@@ -597,6 +677,16 @@
       "evidence": "\"Get started\" + \"Learn more\"",
       "message": "Twin buttons: make the second a quiet text link.",
       "instead": "One clear main button; make the second option a quiet text link."
+    },
+    {
+      "rule": "straight-quotes",
+      "detector": "straight-quote",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 55,
+      "evidence": "hing you need. Nothing you don't.",
+      "message": "3 straight quote marks in visible text: use curly quotes and apostrophes.",
+      "instead": "Use curly quotes and apostrophes in visible text. Keep straight quotes in code, Markdown source, commands and attributes."
     },
     {
       "rule": "ing-riders",

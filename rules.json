@@ -1,6 +1,6 @@
 {
-  "version": "2.0.0",
-  "updated": "2026-11-18",
+  "version": "2.1.0",
+  "updated": "2026-11-19",
   "about": "Anti-slop rules for AI-made work, by context. They are design and writing preferences, not a test of who or what made something: judge the result, never guess the author. The rules draw on several sources (see Sources in SKILL.md and NOTICE). 'dont' is the pattern; 'instead' is what to do.",
   "contexts": {
     "web": "Websites and landing pages",
@@ -8,10 +8,11 @@
     "deck": "Decks and slides",
     "doc": "Documents and reports (research write-ups, PDFs, briefs)",
     "copy": "Social and marketing copy (posts, captions, emails, ads)",
-    "image": "Imagery and illustration (generated or chosen)"
+    "image": "Imagery and illustration (generated or chosen)",
+    "code": "Code (JavaScript, TypeScript, Python): source files and diffs"
   },
   "check_kinds": {
-    "machine": "A static checker can find it in HTML, CSS, Markdown or text (check-slop.mjs). A hit is evidence, not a verdict.",
+    "machine": "A static checker can find it in HTML, CSS, Markdown, text or JS/TS/Python source (check-slop.mjs). A hit is evidence, not a verdict.",
     "screenshot": "Needs the rendered result: look at a screenshot at 390, 820 and 1280 px.",
     "judgement": "Needs a person or a model reviewing against the brief and brand."
   },
@@ -1821,6 +1822,719 @@
         "judgement"
       ],
       "severity": "low"
+    },
+    {
+      "id": "code-narrating-comments",
+      "dont": "Comments that say what the next line plainly does: '// increment the counter' above count++, '# create user' above user = User().",
+      "instead": "Delete them. Keep comments that say why: a constraint, a workaround, a link to the decision.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "narrating-comment",
+      "severity": "low"
+    },
+    {
+      "id": "code-debug-output",
+      "dont": "Debug output left in: console.log, print('here'), debugger, breakpoint() and pdb calls.",
+      "instead": "Remove it, or send real messages through the project's logger. Command-line tools that print on purpose are fine.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "debug-output",
+      "severity": "medium"
+    },
+    {
+      "id": "code-dead-code",
+      "dont": "Dead code: blocks commented out 'for later', lines after a return or throw, and branches behind if (false).",
+      "instead": "Delete it. Version control keeps the old code.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "commented-code",
+      "severity": "medium"
+    },
+    {
+      "id": "code-swallowed-errors",
+      "dont": "Error handling that hides failures: empty catch blocks, bare except or except: pass, .catch(() => {}), a catch that only logs and carries on, and try/catch or null checks wrapped round internal calls that cannot fail.",
+      "instead": "Catch only what you can handle, say why in a comment when you ignore an error on purpose, and let the rest fail loudly. Guard the real boundaries: user input, the network, files.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "swallowed-error",
+      "severity": "high"
+    },
+    {
+      "id": "code-needless-wrappers",
+      "dont": "Layers nobody asked for: a function that only passes its arguments on to another, a class or factory with one caller, an interface with one implementation, settings for a value that never changes.",
+      "instead": "Call the real thing directly. Add a layer when a second use or a real seam needs it.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "pass-through-wrapper",
+      "severity": "low"
+    },
+    {
+      "id": "code-generic-names",
+      "dont": "Names that say nothing: data, result, temp, obj, stuff, handleStuff, processData, helper.",
+      "instead": "Name the thing by what it holds or does: overdueLoans, parseInvoice, sendReminder.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "generic-name",
+      "severity": "low"
+    },
+    {
+      "id": "code-redundant-casts",
+      "dont": "Casts that change nothing or silence the type checker: as any, as unknown as T, String() round a string, Boolean(!!x), str() round a string literal, list(list(x)).",
+      "instead": "Fix the type where it starts and drop the cast. Where a cast is needed, cast once, to the narrowest type.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "redundant-cast",
+      "severity": "medium"
+    },
+    {
+      "id": "code-loose-types",
+      "dont": "any as the type of choice: : any, any[], Record<string, any>, -> Any.",
+      "instead": "Write the real type, or use unknown and narrow it with a check.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "any-type",
+      "severity": "low"
+    },
+    {
+      "id": "code-todo-residue",
+      "dont": "TODO and placeholder residue: vague TODOs with no owner or ticket ('TODO: add error handling'), '... rest of the code here', 'implement this', and stubs that throw 'Not implemented' on paths people use.",
+      "instead": "Finish it, or turn the TODO into a ticket and link it. Never ship a stub on a path people use.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "todo-residue",
+      "severity": "medium"
+    },
+    {
+      "id": "code-style-drift",
+      "dont": "New code that ignores the file round it: tabs among spaces, single quotes among double, var among const, snake_case among camelCase.",
+      "instead": "Match the surrounding file and the project's formatter, even where you prefer another style.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "style-drift",
+      "severity": "low"
+    },
+    {
+      "id": "code-unused-imports",
+      "dont": "Imports that nothing in the file uses.",
+      "instead": "Delete them. Keep side-effect imports (styles, polyfills) and deliberate re-exports.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "unused-import",
+      "severity": "medium"
+    },
+    {
+      "id": "code-deep-nesting",
+      "dont": "Pyramids of nested if, for and try, five or more levels deep.",
+      "instead": "Return early, pull a block into a named function, or turn the condition round.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "deep-nesting",
+      "severity": "low"
+    },
+    {
+      "id": "code-docstring-bloat",
+      "dont": "Long docstrings and JSDoc blocks on trivial functions that only restate the name and the arguments.",
+      "instead": "Keep a docstring when it says something the signature cannot: units, side effects, errors, a surprising rule.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "docstring-bloat",
+      "severity": "low"
+    },
+    {
+      "id": "code-generic-errors",
+      "dont": "Errors thrown with a message that names no cause: 'Something went wrong', 'Error', 'Failed', 'Invalid input'.",
+      "instead": "Give each failure a stable code and a plain message that says what failed and what to do next.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "generic-error",
+      "severity": "medium"
+    },
+    {
+      "id": "code-scratch-files",
+      "dont": "Working notes committed with the change: NOTES.md, PLAN.md, SCRATCH.md, TODO.md, IMPLEMENTATION_SUMMARY.md.",
+      "instead": "Keep notes out of the repo, or fold what matters into the README, the docs or the pull request.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "scratch-file",
+      "severity": "low"
+    },
+    {
+      "id": "code-scope-creep",
+      "dont": "A diff that does more than was asked: drive-by refactors, renamed files, new dependencies, reformatted lines and features nobody requested.",
+      "instead": "Keep the change to the task. Raise the other ideas on their own, as separate changes.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "code-mock-heavy-tests",
+      "dont": "Tests that mock so much they test nothing real: four or more patches on one test, assertions about the mocks themselves, snapshots nobody reads.",
+      "instead": "Test behaviour through real code paths, and mock only slow or outside boundaries.",
+      "contexts": [
+        "code"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "dead-controls",
+      "dont": "Controls wired to nothing: href=\"#\", javascript:void(0), buttons with no handler, toggles that do not save.",
+      "instead": "Make every visible control do something, or leave it out until it does.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "dead-link",
+      "severity": "medium"
+    },
+    {
+      "id": "placeholder-pages",
+      "dont": "Real-looking navigation that leads to 'Coming soon', 'Under construction' or a blank page.",
+      "instead": "Ship the link with the page. Until then, leave it out, or show it disabled with the reason.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "coming-soon",
+      "severity": "low"
+    },
+    {
+      "id": "generic-status-copy",
+      "dont": "Status messages that say nothing: 'Something went wrong', 'An error occurred', 'Oops!', 'No items to display', 'Invalid input'.",
+      "instead": "Say what happened and what to do next ('Could not save: you are offline. Your draft is kept.'). Empty states name the next step.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "generic-status",
+      "severity": "medium"
+    },
+    {
+      "id": "primitive-drift",
+      "dont": "Hand-styled raw buttons, inputs and cards beside the project's own components, or call sites that override a shared component's colour, radius, spacing or focus style.",
+      "instead": "Use the shared component and its variants. If a variant is missing, add it to the component once instead of styling round it.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "destructive-actions",
+      "dont": "Delete and other actions that cannot be undone run on one click, with no confirm and no undo, styled like the main action and sitting beside it.",
+      "instead": "Confirm or offer undo in proportion to the damage, use the danger style, and keep it apart from the main action.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "action-feedback",
+      "dont": "Clicks with no visible response: a submit button that stays live during the request so a double click sends twice, no pressed state, a save that succeeds in silence, a toast that never closes.",
+      "instead": "Respond within about 100 ms: disable and relabel the button while it works, confirm success briefly, and close toasts after a few seconds.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "synonym-cycling",
+      "dont": "One thing called by a new name in every sentence (the tool, the platform, the solution, the app), so readers wonder if there are four.",
+      "instead": "Pick one name and keep it.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "false-ranges",
+      "dont": "Ranges that are not ranges: 'everything from startups to global enterprises', 'from design to delivery and everything in between'.",
+      "instead": "List what is actually covered, or name the one thing that matters.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "false-range",
+      "severity": "low"
+    },
+    {
+      "id": "bold-overuse",
+      "dont": "Bold sprinkled through paragraphs: three or more bold phrases in one paragraph, every name and number in bold.",
+      "instead": "Bold one thing per section at most: the thing a skimming reader must not miss.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "bold-overuse",
+      "severity": "low"
+    },
+    {
+      "id": "cutoff-disclaimers",
+      "dont": "Disclaimers about the writer's own limits: 'as of my last update', 'while specific details are limited', 'I do not have real-time access'.",
+      "instead": "Find the source and cite it with its date, or leave the claim out.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "cutoff-disclaimer",
+      "severity": "medium"
+    },
+    {
+      "id": "generic-endings",
+      "dont": "Endings that could close any piece: 'The future looks bright', 'Only time will tell', 'It remains to be seen', 'Exciting times ahead'.",
+      "instead": "End on the last concrete point, a date, or the next step.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "generic-ending",
+      "severity": "medium"
+    },
+    {
+      "id": "plain-words",
+      "dont": "Long or abstract words where a plain one exists: utilize, leverage, facilitate, commence, prior to, in order to, numerous, synergy, north star, flywheel, substrate.",
+      "instead": "Use the plain word (use, help, start, before, to, many), and name the concrete thing instead of the metaphor.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "fancy-word",
+      "severity": "low"
+    },
+    {
+      "id": "promo-adjectives",
+      "dont": "Brochure adjectives: vibrant, breathtaking, stunning, renowned, iconic, groundbreaking, must-visit.",
+      "instead": "Describe what is there: the view, the size, the year it opened.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "promo-word",
+      "severity": "low"
+    },
+    {
+      "id": "formulaic-challenges",
+      "dont": "The challenge formula: 'Despite these challenges, it continues to thrive.'",
+      "instead": "Name the actual problem and the actual result, with numbers if you have them.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "despite-formula",
+      "severity": "low"
+    },
+    {
+      "id": "small-touch-targets",
+      "dont": "Tap targets smaller than 44 by 44 px, or packed closer than 8 px apart: icon buttons, small chips, close crosses.",
+      "instead": "Make every control at least 44 px each way (pad the hit area if the icon is smaller) and leave 8 px between controls.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "touch-target",
+      "severity": "medium"
+    },
+    {
+      "id": "unlabelled-fields",
+      "dont": "Inputs, selects and text areas with no label at all.",
+      "instead": "Give each field a visible label tied to it with for and id, or wrap it in the label. Use aria-label only when a visible label truly cannot fit.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "unlabelled-field",
+      "severity": "high"
+    },
+    {
+      "id": "field-types-autofill",
+      "dont": "Email and phone fields typed as plain text, and autocomplete switched off on name, email, phone and address fields.",
+      "instead": "Use type=\"email\" and type=\"tel\" so phones show the right keyboard, and set autocomplete values so browsers can fill the form.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "input-type",
+      "severity": "low"
+    },
+    {
+      "id": "zoom-blocked",
+      "dont": "A viewport tag that stops people zooming: user-scalable=no or maximum-scale=1.",
+      "instead": "Use width=device-width, initial-scale=1 and let people zoom.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "zoom-blocked",
+      "severity": "high"
+    },
+    {
+      "id": "small-input-text",
+      "dont": "Form fields set under 16px, so phones zoom the page when you tap into one.",
+      "instead": "Set inputs, selects and text areas at 16px or more.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "small-input",
+      "severity": "low"
+    },
+    {
+      "id": "form-errors",
+      "dont": "Form errors that are hard to find or fix: one message at the top of a long form, a red border with no words, checks only on submit, errors screen readers never hear, required fields not marked.",
+      "instead": "Put the message next to the field and say how to fix it, check when a field is left, move focus to the first error, announce it (role=\"alert\" or aria-live), and mark required fields.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "nav-limits",
+      "dont": "Navigation that is hard to use: more than five items in a bottom or tab bar, icon-only items with no words, no sign of the current page, a menu that moves between pages, modals used for main navigation.",
+      "instead": "Five items at most in a bottom bar, each icon with a label, the current page marked (aria-current=\"page\"), and the menu in the same place on every page.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "nav-overload",
+      "severity": "medium"
+    },
+    {
+      "id": "chart-encoding",
+      "dont": "Charts that hide their data: a pie or donut with more than five slices, red against green as the only difference, axes with no units, a legend far from its lines, gridlines louder than the data, thousands of raw points.",
+      "instead": "Match the chart to the question (a line for a trend, bars to compare), label lines directly, give units, keep gridlines faint, use shapes or labels as well as colour, and aggregate big sets.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "chart-text-alternative",
+      "dont": "Charts drawn in canvas or SVG with no text a screen reader can read, and no table or summary of what they show.",
+      "instead": "Give each chart a title and a one-line summary of its point (aria-label or a caption), and put a table of the numbers nearby.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "chart-no-text",
+      "severity": "medium"
+    },
+    {
+      "id": "layout-shift",
+      "dont": "Pages that jump while they load: images with no width and height or aspect ratio, web fonts with no font-display, content that pushes the page down when it arrives.",
+      "instead": "Reserve the space: set width and height (or aspect-ratio) on images, use font-display: swap, and size placeholders to the content.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "layout-shift",
+      "severity": "low"
+    },
+    {
+      "id": "mobile-viewport-units",
+      "dont": "Full-screen sections set to height: 100vh, which runs under the address bar on phones.",
+      "instead": "Use 100dvh (with 100vh before it as a fallback), or min-height instead of height.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "vh-height",
+      "severity": "low"
+    },
+    {
+      "id": "z-index-scale",
+      "dont": "z-index values like 999 or 9999 typed to win a fight.",
+      "instead": "Keep a short layer scale as tokens (base, dropdown, sticky, overlay, modal, toast) and use it.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "z-index",
+      "severity": "low"
+    },
+    {
+      "id": "hover-only",
+      "dont": "Actions that only appear on hover, so people on touch screens and keyboards never see them.",
+      "instead": "Show the action, or also reveal it on :focus-within and on tap.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "hover-only",
+      "severity": "medium"
+    },
+    {
+      "id": "slow-ui-motion",
+      "dont": "Interface transitions slower than half a second, or exits as slow as entrances.",
+      "instead": "Keep small transitions around 150 to 300 ms, and let exits run a little faster than entrances.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "slow-transition",
+      "severity": "low"
+    },
+    {
+      "id": "keyboard-paths",
+      "dont": "No skip link on a page with a long menu, drag and drop with no keyboard way, and focus left behind when a view or dialog changes.",
+      "instead": "Add a skip link to the main content, give every drag a button or keyboard route, and move focus to the new view, dialog or first error.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "colour-only-status",
+      "dont": "Status, errors or chart series told apart by colour alone: a red border, a green dot, a red line beside a green one.",
+      "instead": "Pair colour with a word, an icon or a shape.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "ai-disclosure",
+      "dont": "A bot presented as a person: a human name and photo with no sign the replies are automated.",
+      "instead": "Say plainly that the replies come from an AI model, and offer a way to reach a person.",
+      "contexts": [
+        "web",
+        "app",
+        "copy"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "ambiguous-dates",
+      "dont": "Dates that read two ways, like 03/04/2026.",
+      "instead": "Write the month as a word (3 April 2026), or use ISO dates (2026-04-03) in data.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "ambiguous-date",
+      "severity": "low"
+    },
+    {
+      "id": "straight-quotes",
+      "dont": "Straight quote marks and apostrophes (' and \") in text people read on a page, slide or document.",
+      "instead": "Use curly quotes and apostrophes in visible text. Keep straight quotes in code, Markdown source, commands and attributes.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "straight-quote",
+      "severity": "low"
     }
   ],
   "done_checklist": [
@@ -1872,6 +2586,13 @@
       ]
     },
     {
+      "id": "code-verify",
+      "check": "Code: it builds, the type check and the tests pass, and the diff touches only what was asked for.",
+      "contexts": [
+        "code"
+      ]
+    },
+    {
       "id": "report",
       "check": "Then say what you checked and what you couldn't check.",
       "contexts": [
@@ -1880,7 +2601,8 @@
         "deck",
         "doc",
         "copy",
-        "image"
+        "image",
+        "code"
       ]
     }
   ]

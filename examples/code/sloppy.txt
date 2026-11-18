@@ -1,0 +1,44 @@
+HIGH   code-swallowed-errors sloppy.js:21  An empty catch block hides the failure: handle it, or say in a comment why it is safe to ignore.
+       catch (e) {}
+HIGH   code-swallowed-errors sloppy.js:51  A promise catch that throws the error away.
+       .catch(() => {})
+HIGH   code-todo-residue    sloppy.js:56  Placeholder left where code should be.
+       ... rest of the code here
+MEDIUM code-unused-imports  sloppy.js:2  "writeFile" is imported and never used.
+       import { readFile, writeFile } from 'node:fs/promises';
+MEDIUM code-unused-imports  sloppy.js:4  "formatDate" is imported and never used.
+       import { formatDate } from './dates.js';
+MEDIUM code-debug-output    sloppy.js:28  console.log left in: remove it or use the project's logger.
+       console.log("loans", loans);
+MEDIUM code-dead-code       sloppy.js:42  2 lines of commented-out code: delete them, version control keeps them.
+       const old = loans.filter((l) => l.late);
+MEDIUM code-debug-output    sloppy.js:45  console.log left in: remove it or use the project's logger.
+       console.log('done');
+MEDIUM code-dead-code       sloppy.js:45  Unreachable: this line comes after a return at the same level.
+       console.log('done');
+MEDIUM code-generic-errors  sloppy.js:52  "Something went wrong" names no cause: give a stable code and say what failed and what to do.
+       if (!loan.member) throw new Error('Something went wrong');
+MEDIUM code-todo-residue    sloppy.js:57  A "not implemented" stub on a code path.
+       throw new Error("Not implemented");
+LOW    code-style-drift     sloppy.js:6  var mixed with let and const: match the file.
+       var DAY = 24 * 60 * 60 * 1000;
+LOW    code-docstring-bloat sloppy.js:8  A 5-line doc comment on a one-line function, mostly repeating its name.
+       Gets the loans.
+LOW    code-needless-wrappers sloppy.js:15  getLoans() only passes its arguments to loadLoans(): call loadLoans() directly.
+       function getLoans(file) { return loadLoans(file); }
+LOW    code-generic-names   sloppy.js:19  "data" says nothing about what it holds or does.
+       const data =
+LOW    code-redundant-casts sloppy.js:20  "Boolean(!!" converts a value to the type it already has.
+       return Boolean(!!data) && JSON.parse(data);
+LOW    code-generic-names   sloppy.js:25  "handleStuff" says nothing about what it holds or does.
+       function handleStuff(
+LOW    code-generic-names   sloppy.js:26  "result" says nothing about what it holds or does.
+       const result =
+LOW    code-deep-nesting    sloppy.js:34  Control flow 6 levels deep: return early or pull the block into a named function.
+       if (today - loan.due > DAY) {
+LOW    code-todo-residue    sloppy.js:49  A TODO with no owner or ticket: finish it, or link the ticket.
+       TODO: add error handling
+LOW    code-narrating-comments sloppy.js:50  A comment that says what the next line plainly does: delete it, or say why instead.
+       Send the email / await sendEmail(loan.member.email, `Please return the ${loan.tool}`).catch(() => {});
+
+slop-guard: 1 file(s), 21 finding(s): 3 high, 8 medium, 10 low (context: code). Hits are evidence for a reviewer, not a verdict.

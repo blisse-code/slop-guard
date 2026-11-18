@@ -71,10 +71,10 @@ async function flow(mode) {
   const wrapText = (str, n) => str.split(' ').reduce((a, w) => { const l = a[a.length - 1]; if (l && (l + ' ' + w).length <= n) a[a.length - 1] = l + ' ' + w; else a.push(w); return a; }, []);
   const m = RULES.rules.filter((r) => r.check.includes('machine')).length;
   const cols = [
-    { title: 'Sources', items: ["The author's own rules", 'Impeccable (Apache-2.0)', 'taste-skill (MIT)', 'Ideas from deslop-skills, in our own words', 'General UI and writing practice'] },
+    { title: 'Sources', items: ["The author's own rules", 'Impeccable (Apache-2.0)', 'taste-skill (MIT)', 'ui-ux-pro-max (MIT)', 'iamladi de-slop (MIT)', 'Ideas from deslop-skills and shipshitdev de-slop, in our own words', 'General UI, code and writing practice'] },
     { title: 'rules.json', items: [`${RULES.rules.length} rules, version ${RULES.version}`, 'Each rule: the pattern, what to do instead, its contexts, how to check it, a severity'] },
     { title: 'Contexts', items: Object.keys(RULES.contexts).map((c) => `${c}: ${RULES.rules.filter((r) => r.contexts.includes(c)).length} rules`) },
-    { title: 'Checks', items: [`The checker finds ${m} rules in HTML, CSS, Markdown and text`, 'Screenshots at 390, 820 and 1280 px', 'Judgement against the brief'] },
+    { title: 'Checks', items: [`The checker finds ${m} rules in HTML, CSS, Markdown, text and JS, TS or Python`, 'Screenshots at 390, 820 and 1280 px', 'Judgement against the brief'] },
     { title: 'Done', items: ['Works at phone width', 'Text is readable', 'Keyboard reaches everything', 'Empty and error states', 'Say what was and was not checked'] },
   ];
   const bw = 174, gap = 22, x0 = 22, top = 88, lh = 21, n = 21;
@@ -100,14 +100,14 @@ async function flow(mode) {
 // 2. Rules per context, split into machine-checked and checked by eye. One axis, direct labels.
 async function contextsChart(mode) {
   const th = THEME[mode]; const { used, t } = canvas();
-  const data = Object.keys(RULES.contexts).map((c) => {
+  const rows = Object.keys(RULES.contexts).map((c) => {
     const rs = RULES.rules.filter((r) => r.contexts.includes(c));
     const m = rs.filter((r) => r.check.includes('machine')).length;
     return { c, total: rs.length, machine: m, eye: rs.length - m };
   });
   const W = 1000, rowH = 46, top = 118, left = 96, right = 210;
-  const H = top + data.length * rowH + 64;
-  const max = Math.ceil(Math.max(...data.map((d) => d.total)) / 20) * 20;
+  const H = top + rows.length * rowH + 64;
+  const max = Math.ceil(Math.max(...rows.map((d) => d.total)) / 20) * 20;
   const sx = (v) => left + (v / max) * (W - left - right);
   let body = t('display', 24, 52, 'Rules per context', 26, th.ink);
   body += t('body', 24, 80, `${RULES.rules.length} rules in all. Most rules apply to more than one context.`, 15, th.ink2);
@@ -117,10 +117,10 @@ async function contextsChart(mode) {
   // grid and axis labels
   for (let v = 0; v <= max; v += 20) {
     const x = sx(v);
-    body += `<path d="M${x} ${top} V${top + data.length * rowH}" stroke="${th.grid}" stroke-width="1"/>`;
-    body += t('body', x, top + data.length * rowH + 22, String(v), 14, th.ink2, 'text-anchor="middle"');
+    body += `<path d="M${x} ${top} V${top + rows.length * rowH}" stroke="${th.grid}" stroke-width="1"/>`;
+    body += t('body', x, top + rows.length * rowH + 22, String(v), 14, th.ink2, 'text-anchor="middle"');
   }
-  data.forEach((d, i) => {
+  rows.forEach((d, i) => {
     const y = top + i * rowH + 12, h = 24;
     body += t('display', left - 14, y + 18, d.c, 17, th.ink, 'text-anchor="end"');
     const xm = sx(d.machine);
@@ -128,7 +128,7 @@ async function contextsChart(mode) {
     if (d.eye) body += `<rect x="${xm + 1}" y="${y}" width="${Math.max(0, sx(d.total) - xm - 1)}" height="${h}" rx="4" fill="${th.s2}"/>`;
     body += t('body', sx(d.total) + 10, y + 17, `${d.total} rules, ${d.machine} by the checker`, 14.5, th.ink);
   });
-  return wrap(W, H, 'Rules per context', data.map((d) => `${d.c}: ${d.total} rules, ${d.machine} found by the checker, ${d.eye} checked by eye`).join('; '), body, used, th);
+  return wrap(W, H, 'Rules per context', rows.map((d) => `${d.c}: ${d.total} rules, ${d.machine} found by the checker, ${d.eye} checked by eye`).join('; '), body, used, th);
 }
 
 // 3. Real checker output on examples/writing/sloppy.md, as a terminal.

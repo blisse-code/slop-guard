@@ -1,9 +1,9 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "context": "app",
   "counts": {
     "high": 9,
-    "medium": 21,
+    "medium": 25,
     "low": 7
   },
   "files": 1,
@@ -247,6 +247,46 @@
       "evidence": "⚙️ Settings",
       "message": "Emoji used as an interface icon or bullet.",
       "instead": "Use one consistent icon set, custom illustrations, or none at all."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 39,
+      "evidence": "<a href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 39,
+      "evidence": "<a href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 39,
+      "evidence": "<a href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
+    },
+    {
+      "rule": "dead-controls",
+      "detector": "dead-link",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 39,
+      "evidence": "<a href=\"#\">",
+      "message": "A link to \"#\" goes nowhere: link it to a real page or make it a button that does something.",
+      "instead": "Make every visible control do something, or leave it out until it does."
     },
     {
       "rule": "emoji-headings",

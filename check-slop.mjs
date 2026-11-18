@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // slop-guard checker: finds the machine-checkable anti-slop rules (rules.json) in HTML,
-// CSS, Markdown and text. A hit is evidence for a reviewer, not a verdict: the rules are
-// design preferences, not an AI-authorship test. No dependencies.
+// CSS, Markdown, text and JS/TS/Python source. A hit is evidence for a reviewer, not a verdict:
+// the rules are design preferences, not an AI-authorship test. No dependencies.
 //
 // Usage:
-//   node check-slop.mjs <file or folder>... [--context web|app|deck|doc|copy|image]
+//   node check-slop.mjs <file or folder>... [--context web|app|deck|doc|copy|image|code]
 //                       [--json out.json] [--strict] [--year 2026]
 //   node check-slop.mjs --list [--context deck]        rules for a context, as Markdown
 //   node check-slop.mjs --rubric [--context doc]       screenshot and judgement checks only
@@ -117,6 +117,18 @@ const RESIDUE = /(\{\{\s*[\w.]+\s*\}\}|\[(?:your |company |brand |business )?(?:
 const DEFAULT_CAST = /\b(Northwind|Contoso|Fabrikam|Globex|Initech|Brightloop|Fieldnote)\b/g;
 const NUMW = '(one|two|three|four|five|six|seven|eight|nine|ten|\\d+)';
 const MONO = /^(monospace|ui-monospace|jetbrains mono|ibm plex mono|space mono|fira code|fira mono|courier|courier new|sf mono|roboto mono|dm mono|source code pro|menlo|consolas|geist mono)$/;
+// Added in v2.1: interface copy, prose tells and control selectors.
+const GENERIC_STATUS = /\b(something went wrong|an? (?:unexpected |unknown )?error (?:has )?occurred|oops[!.,]|unknown error|no (?:items|data|results|records) (?:to display|to show|available|found)|invalid input)/gi;
+const COMING_SOON = /\b(coming soon|under construction|stay tuned|page (?:is )?not (?:ready|built) yet)\b/gi;
+const FALSE_RANGE = /\b(?:everything |anything )?from (?:[\w-]+ ){0,2}[\w-]+ to (?:[\w-]+ ){0,2}[\w-]+(?:,? and everything in between|,? and beyond)|\beverything from (?:[\w-]+ ){0,2}[\w-]+ to (?:[\w-]+ ){0,2}[\w-]+/gi;
+const CUTOFF = /\b(as of my (?:last|latest) (?:update|training)|my (?:knowledge|training) (?:cutoff|cut-off)|i (?:don'?t|do not) have (?:access to )?real-time|while (?:specific )?(?:details|information) (?:is|are) (?:limited|scarce)|(?:specific|detailed) (?:details|information) (?:is|are) not (?:readily )?available)/gi;
+const GENERIC_ENDING = /\b(the future (?:looks|is) bright|only time will tell|(?:it )?remains to be seen|exciting times (?:lie )?ahead|watch this space|the journey (?:is just|has only just) beg(?:un|inning))\b/gi;
+const FANCY = /\b(utili[sz](?:e|es|ed|ing)|leverag(?:e|es|ed|ing) (?:the|our|your|their|this|these|a|an|its)\b|facilitat(?:e|es|ed|ing)|commenc(?:e|es|ed|ing)|prior to|in order to|numerous|synerg(?:y|ies|istic)|north star|flywheel|substrate)\b/gi;
+const PROMO = /\b(vibrant|breathtaking|stunning|renowned|world-renowned|iconic|groundbreaking|must-(?:see|visit|have)|awe-inspiring|unforgettable)\b/gi;
+const DESPITE = /\bdespite (?:these|those|its|their|the|some|many|numerous) (?:challenges|setbacks|obstacles|hurdles|difficulties)[^.!?\n]{0,80}?\b(?:continues? to|remains?|still manages? to|has managed to)\b/gi;
+const AMBIG_DATE = /\b(\d{1,2})([/-])(\d{1,2})\2(\d{4}|\d{2})\b/g;
+const CONTROL_SEL = /(^|[\s,>+~(])(button|\.btn[\w-]*|\.button[\w-]*|\.icon-?(?:btn|button)[\w-]*|\[role=["']?button["']?\]|select|\.chip[\w-]*|\.tab|\.toggle[\w-]*|\.close[\w-]*|\.fab)(?=$|[\s,>+~:.\[)])/i;
+const FIELD_SEL = /(^|[\s,>+~])(input|select|textarea|\.input[\w-]*|\.field[\w-]*|\.form-control)(?=$|[\s,>+~:.\[])/i;
 
 // ---- detectors -----------------------------------------------------------------------------
 // Each returns findings { detector, line, evidence, message, severity? }.
@@ -268,6 +280,30 @@ function cssDetectors(css, file) {
       add('blur-blob', r, `${r.sel} { filter: ${d.filter} }`, 'Heavily blurred colour blob used as background decoration.');
     // framework defaults
     if (/^slate|#64748b|#475569|#334155/i.test((d.color || '') + (d['background-color'] || ''))) add('framework-defaults', r, `${r.sel} { color: ${d.color || d['background-color']} }`, 'Tailwind slate default: retheme tokens to the chosen style.', 'low');
+    // v2.1: touch targets, field text size, viewport units, z-index, slow transitions, font-display
+    const lastParts = r.sel.split(',').map((x) => x.trim().split(/\s*[\s>+~]\s*/).pop());
+    if (lastParts.some((x) => CONTROL_SEL.test(x) && !/::|checkbox|radio|range|:disabled|\[disabled|sr-only|visually-hidden/i.test(x))) {
+      const small = ['height', 'width', 'min-height', 'min-width'].map((p) => [p, toPx(d[p] || '')]).filter(([, v]) => v != null && v > 0 && v < 44);
+      const ok = ['min-height', 'min-width'].some((p) => (toPx(d[p] || '') || 0) >= 44);
+      if (small.length && !ok) add('touch-target', r, `${r.sel} { ${small.map(([p]) => `${p}: ${d[p]}`).join('; ')} }`, `A control set to ${Math.round(small[0][1])}px: tap targets need at least 44px each way.`);
+    }
+    if (FIELD_SEL.test(r.sel) && !/checkbox|radio|range|::?placeholder|label/i.test(r.sel) && fs_ != null && fs_ > 0 && fs_ < 16)
+      add('small-input', r, `${r.sel} { font-size: ${d['font-size']} }`, `Form field text at ${Math.round(fs_ * 10) / 10}px: phones zoom the page in on fields under 16px.`);
+    if (/^100vh$/.test((d.height || '').trim())) add('vh-height', r, `${r.sel} { height: ${d.height} }`, 'height: 100vh runs under the address bar on phones: use 100dvh (with 100vh as a fallback), or min-height.');
+    const z = parseInt(d['z-index'] || '', 10);
+    if (Number.isFinite(z) && Math.abs(z) >= 1000) add('z-index', r, `${r.sel} { z-index: ${d['z-index']} }`, `z-index ${z}: take it from a short layer scale instead.`);
+    for (const v of (CONTROL_SEL.test(r.sel) || /(menu|dropdown|tooltip|modal|dialog|popover|toast|drawer|sheet|tab|nav|link|input|field|card|:hover|:focus|:active)/i.test(r.sel) ? [d.transition, d['transition-duration']] : []).filter(Boolean)) {
+      const ms = [...v.matchAll(/(?<![\w.-])(\d*\.?\d+)(ms|s)\b/g)].map((m) => (m[2] === 's' ? +m[1] * 1000 : +m[1]));
+      if (ms.length && ms[0] > 500) { add('slow-transition', r, `${r.sel} { transition: ${v} }`, `A ${ms[0]} ms interface transition: keep small transitions to about 150 to 300 ms.`); break; }
+    }
+    if (r.sel.trim().toLowerCase() === 'font-face' && !d['font-display']) add('layout-shift', r, `@font-face { font-family: ${d['font-family'] || '?'} }`, '@font-face with no font-display: text stays invisible or jumps while the font loads.');
+  }
+  // actions revealed only on hover, with no focus route to the same reveal anywhere in the stylesheet
+  const focusReveal = rules.some((r) => /:focus-within|:focus-visible|:focus\b/.test(r.sel) && (/^1$/.test((r.decls.opacity || '').trim()) || /visible/.test(r.decls.visibility || '') || (r.decls.display && !/none/.test(r.decls.display))));
+  if (!focusReveal) for (const r of rules) {
+    const d = r.decls;
+    if (/:hover\s*[>+~]?\s*[\w.#[]/.test(r.sel) && (/^1$/.test((d.opacity || '').trim()) || /visible/.test(d.visibility || '') || (d.display && !/none/.test(d.display))) && /(action|button|btn|menu|control|tool|edit|delete|remove|option|more)/i.test(r.sel.split(':hover').pop()))
+      { add('hover-only', r, `${r.sel} { ${Object.entries(d).map(([k, v]) => `${k}: ${v}`).join('; ')} }`, 'Controls that only appear on hover: touch and keyboard users never see them. Also reveal them on :focus-within, or show them.'); break; }
   }
   for (const k of keyframes) if (/^(bounce|elastic|wobble|jello)/i.test(k)) out.push({ detector: 'bouncy-motion', file, line: lineAt(css, css.indexOf(k)), evidence: `@keyframes ${k}`, message: 'Bouncy or elastic keyframes.', severity: 'low' });
   return out;
@@ -447,12 +483,60 @@ function htmlDetectors(html, file, year) {
   for (const m of src.matchAll(/<h[1-6]\b[^>]*>[\s\S]*?<mark\b[\s\S]*?<\/h[1-6]>/gi)) add('marker-highlight', m.index, textOf(m[0]).slice(0, 80), 'Highlighter mark inside a heading.', 'low');
   // conversation or template left in the page: markdown that never rendered
   for (const m of textOf(src).matchAll(/\*\*(?=\S)[^*\n]{1,60}(?<=\S)\*\*|(?:^|\s)#{2,3} [A-Z]/g)) { add('residue', src.indexOf(m[0].trim().slice(0, 12)), m[0].trim(), 'Markdown symbols showing on the page.'); break; }
+  // v2.1 ---------------------------------------------------------------------------------------
+  // straight quotes in visible text only: tags (and so attributes), comments, code, pre, kbd, samp,
+  // textarea, svg and math are blanked first, keeping offsets
+  const blankAll = (s) => s.replace(/[^\n]/g, ' ');
+  const vis = src.replace(/<!--[\s\S]*?-->/g, blankAll).replace(/<(code|pre|kbd|samp|textarea|svg|math)\b[\s\S]*?<\/\1>/gi, blankAll).replace(/<[^>]*>/g, blankAll);
+  const quotes = [...vis.matchAll(/["']|&(?:quot|apos|#0*3[49]|#x0*2[27]);/gi)];
+  if (quotes.length) { const q = quotes[0].index; add('straight-quote', q, vis.slice(Math.max(0, q - 30), q + 30).replace(/\s+/g, ' ').trim(), `${quotes.length} straight quote mark${quotes.length > 1 ? 's' : ''} in visible text: use curly quotes and apostrophes.`); }
+  // controls wired to nothing
+  for (const m of src.matchAll(/<a\b[^>]*\bhref\s*=\s*["'](#|javascript:[^"']*)["'][^>]*>/gi)) add('dead-link', m.index, m[0], `A link to "${m[1]}" goes nowhere: link it to a real page or make it a button that does something.`);
+  for (const m of src.matchAll(/<(?:button|a|div|span)\b[^>]*\bonclick\s*=\s*["']\s*(?:return false;?|void\(0\);?)?\s*["'][^>]*>/gi)) add('dead-link', m.index, m[0], 'A control with an empty click handler.');
+  // fields with no label at all (placeholder-only fields are the placeholder-labels rule)
+  for (const m of src.matchAll(/<(input|textarea|select)\b([^>]*)>/gi)) {
+    const a = m[2];
+    if (/type\s*=\s*["']?(hidden|submit|button|image|reset)\b/i.test(a) || /placeholder\s*=/i.test(a)) continue;
+    const id = (a.match(/\bid\s*=\s*["']([^"']+)["']/) || [])[1];
+    const wrapped = /<label\b(?![\s\S]*<\/label>)/i.test(src.slice(Math.max(0, m.index - 300), m.index));
+    const untied = /<label\b(?![^>]*\bfor\s*=)[^>]*>[^<]{1,80}<\/label>\s*(?:<[^>]+>\s*){0,2}$/i.test(src.slice(Math.max(0, m.index - 200), m.index));
+    if (!(id && labelled.has(id)) && !wrapped && !/aria-label(ledby)?\s*=|\btitle\s*=/i.test(a)) add('unlabelled-field', m.index, m[0], untied ? `A ${m[1]} next to a label that is not tied to it: add for="${id || '...'}" to the label${id ? '' : ' and an id to the field'}.` : `A ${m[1]} with no label: give it a visible <label for>.`);
+  }
+  // field types and autofill
+  for (const m of src.matchAll(/<input\b([^>]*)>/gi)) {
+    const a = m[1], hint = ((a.match(/\b(?:name|id|autocomplete)\s*=\s*["']([^"']+)["']/gi) || []).join(' ')).toLowerCase();
+    const type = ((a.match(/\btype\s*=\s*["']?([\w-]+)/i) || [])[1] || 'text').toLowerCase();
+    if (/(^|[^a-z])e-?mail/.test(hint) && type === 'text') add('input-type', m.index, m[0], 'An email field typed as text: use type="email" for the right phone keyboard and checks.');
+    else if (/(^|[^a-z])(phone|tel|mobile)/.test(hint) && type === 'text') add('input-type', m.index, m[0], 'A phone field typed as text: use type="tel".');
+    if (/autocomplete\s*=\s*["']off["']/i.test(a) && /(name|e-?mail|phone|tel|address|postal|zip|city|country)/.test(hint)) add('input-type', m.index, m[0], 'Autocomplete switched off on a field browsers could fill: set a real autocomplete value.');
+  }
+  // zoom switched off
+  for (const m of html.matchAll(/<meta\b[^>]*name\s*=\s*["']?viewport[^>]*>/gi)) if (/user-scalable\s*=\s*(?:no|0)\b|maximum-scale\s*=\s*1(?:\.0*)?(?![\d.])/i.test(m[0])) add('zoom-blocked', m.index, m[0], 'The viewport tag blocks zooming: people who need bigger text cannot get it.');
+  // navigation: crowded bottom or tab bars, icon-only items
+  for (const m of src.matchAll(/<nav\b([^>]*)>([\s\S]*?)<\/nav>/gi)) {
+    const items = [...m[2].matchAll(/<(a|button)\b([^>]*)>([\s\S]*?)<\/\1>/gi)];
+    if (/class\s*=\s*["'][^"']*\b(bottom|tab-?bar|tabbar|bottom-nav|mobile-nav|tabs)\b/i.test(m[1]) && items.length > 5) add('nav-overload', m.index, `${items.length} items in ${m[0].slice(0, 60)}`, `${items.length} items in a bottom or tab bar: five is the limit.`);
+    const iconOnly = items.filter((x) => x[1].toLowerCase() === 'a' && !textOf(x[3]) && /<(svg|img|i)\b/i.test(x[3]));
+    if (iconOnly.length) add('nav-overload', m.index + m[0].indexOf(iconOnly[0][0]), iconOnly[0][0], `${iconOnly.length} navigation item${iconOnly.length > 1 ? 's' : ''} shown as an icon with no words: add a visible label.`, 'low');
+  }
+  // charts with no text alternative
+  for (const m of src.matchAll(/<canvas\b([^>]*)>([\s\S]*?)<\/canvas>/gi)) if (!/aria-label(ledby)?\s*=\s*["'][^"']+/i.test(m[1]) && !textOf(m[2])) add('chart-no-text', m.index, m[0].slice(0, 100), 'A canvas with no label or fallback text: screen readers get nothing.');
+  for (const m of html.matchAll(/<svg\b([^>]*)>([\s\S]*?)<\/svg>/gi)) if (/(?:class|id)\s*=\s*["'][^"']*\b(chart|graph|plot|sparkline)/i.test(m[1]) && !/aria-label(ledby)?\s*=\s*["'][^"']+/i.test(m[1]) && !/<title\b/i.test(m[2]) && !/aria-hidden\s*=\s*["']true/i.test(m[1])) add('chart-no-text', m.index, m[0].slice(0, 100), 'A chart SVG with no title or label: screen readers get nothing.');
+  // images that reserve no space
+  const noSize = [...src.matchAll(/<img\b([^>]*)>/gi)].filter((m) => !(/\bwidth\s*=/i.test(m[1]) && /\bheight\s*=/i.test(m[1])) && !/aspect-ratio/i.test(m[1]));
+  if (noSize.length && !/aspect-ratio/i.test(html)) add('layout-shift', noSize[0].index, noSize[0][0], `${noSize.length} image${noSize.length > 1 ? 's' : ''} with no width and height: the page jumps as they load.`);
+  // bold sprinkled through paragraphs
+  for (const m of src.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)) if ((m[1].match(/<(strong|b)\b/gi) || []).length >= 3) { add('bold-overuse', m.index, textOf(m[1]).slice(0, 80), 'Three or more bold phrases in one paragraph.'); break; }
   out.push(...textDetectors(textOf(src), file, year, src));
   return out;
 }
 
 // Plain text, Markdown and the visible text of HTML.
 function textDetectors(text, file, year, original = text) {
+  // Curly quotes are the preferred form in visible text, so match patterns on straight ones.
+  // One character for one character, so offsets and line numbers stay the same.
+  const flat = (s) => s.replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"');
+  text = flat(text); original = flat(original);
   const out = [];
   const lineOf = (needle) => { const i = original.indexOf(needle); return i >= 0 ? lineAt(original, i) : 1; };
   const add = (detector, evidence, message, severity) => out.push({ detector, file, line: lineOf(evidence), evidence: String(evidence).slice(0, 160), message, severity });
@@ -525,18 +609,288 @@ function textDetectors(text, file, year, original = text) {
     const t = para.replace(/[#>*_`-]/g, '').trim();
     const letters = t.replace(/[^A-Za-z]/g, '');
     if (letters.length > 60 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.8) out.push({ detector: 'reading', file, line: lineOf(para.slice(0, 40)), evidence: t.slice(0, 80), message: 'A paragraph set in capitals.' });
+    // Markdown: bold sprinkled through one paragraph (lists, tables and headings excluded)
+    const proseOnly = para.split('\n').filter((l) => !/^\s*(#|[-*+]\s|\d+[.)]\s|\||>|```)/.test(l)).join('\n');
+    // field labels ("**Status:** draft") are structure, not emphasis
+    if ((proseOnly.match(/\*\*(?=\S)[^*\n]+?\*\*/g) || []).filter((b) => !/:\*\*$|:\s*\*\*$/.test(b)).length >= 3 && once('bo')) out.push({ detector: 'bold-overuse', file, line: lineOf(para.slice(0, 40)), evidence: para.trim().slice(0, 80), message: 'Three or more bold phrases in one paragraph.' });
   }
+  // v2.1 interface copy and prose tells
+  for (const m of text.matchAll(GENERIC_STATUS)) if (once('gs' + m[0].toLowerCase())) add('generic-status', m[0], `"${m[0]}" says nothing about what happened or what to do next.`);
+  for (const m of text.matchAll(COMING_SOON)) if (once('cs' + m[0].toLowerCase())) add('coming-soon', m[0], `"${m[0]}": ship the page with its link, or leave the link out.`);
+  for (const m of text.matchAll(FALSE_RANGE)) if (once('fr' + m[0].toLowerCase())) add('false-range', m[0], `"${m[0]}": a range with no scale. List what is covered.`);
+  for (const m of original.matchAll(CUTOFF)) if (once('co' + m[0].toLowerCase())) add('cutoff-disclaimer', m[0], `"${m[0]}": find and cite the source, or drop the claim.`);
+  for (const m of text.matchAll(GENERIC_ENDING)) if (once('ge' + m[0].toLowerCase())) add('generic-ending', m[0], `"${m[0]}" could end any piece: end on the last concrete point.`);
+  for (const m of text.matchAll(FANCY)) if (once('fw' + m[0].toLowerCase())) add('fancy-word', m[0], `"${m[0]}": use the plain word.`);
+  for (const m of text.matchAll(PROMO)) if (once('pw' + m[0].toLowerCase())) add('promo-word', m[0], `"${m[0]}": describe what is there instead.`);
+  for (const m of text.matchAll(DESPITE)) if (once('df' + m[0].toLowerCase())) add('despite-formula', m[0], `"${m[0]}": name the problem and the result.`);
+  for (const m of text.matchAll(AMBIG_DATE)) if (+m[1] <= 12 && +m[3] <= 12 && m[1] !== m[3] && once('ad' + m[0])) add('ambiguous-date', m[0], `"${m[0]}" reads two ways: write the month as a word.`);
+  return out;
+}
+
+// ---- code: JavaScript, TypeScript and Python --------------------------------------------------
+// Splits source into code, strings and comments. Returns `code`, a copy the same length as the
+// source with comments and string contents blanked (the quote marks stay), plus the comments and
+// strings found. Template literal and f-string expressions stay as code, so names used inside
+// them still count as used.
+function scanCode(src, lang) {
+  const py = lang === 'py', n = src.length;
+  const code = src.split(''), comments = [], strings = [];
+  const blank = (arr, a, b) => { for (let k = a; k < b; k++) if (arr[k] !== '\n') arr[k] = ' '; };
+  const ownLine = (i) => /^\s*$/.test(src.slice(src.lastIndexOf('\n', i - 1) + 1, i));
+  // the end of a ${...} or {...} expression, skipping nested quotes
+  const exprEnd = (j) => { let depth = 1; while (j < n && depth) { const ch = src[j]; if (ch === '{') depth++; else if (ch === '}') depth--; else if (ch === '"' || ch === "'" || ch === '`') { const q = ch; j++; while (j < n && src[j] !== q) j += src[j] === '\\' ? 2 : 1; } j++; } return j; };
+  const KW = new Set(['return', 'typeof', 'case', 'in', 'of', 'delete', 'void', 'throw', 'new', 'yield', 'await', 'else', 'do']);
+  let i = 0;
+  while (i < n) {
+    const c = src[i], d = src[i + 1];
+    if ((py && c === '#') || (!py && c === '/' && d === '/')) {
+      let j = src.indexOf('\n', i); if (j < 0) j = n;
+      comments.push({ start: i, end: j, text: src.slice(i + (py ? 1 : 2), j), block: false, own: ownLine(i) });
+      blank(code, i, j); i = j; continue;
+    }
+    if (!py && c === '/' && d === '*') {
+      let j = src.indexOf('*/', i + 2); j = j < 0 ? n : j + 2;
+      comments.push({ start: i, end: j, text: src.slice(i + 2, j - 2), block: true, own: ownLine(i) });
+      blank(code, i, j); i = j; continue;
+    }
+    // In JS a quote straight after a letter is an apostrophe in JSX text ("don't"), not a string.
+    if ((c === '"' || c === "'" || (c === '`' && !py)) && !(!py && c === "'" && /[A-Za-z0-9]/.test(src[i - 1] || ''))) {
+      const triple = py && src.startsWith(c.repeat(3), i);
+      const close = triple ? c.repeat(3) : c;
+      const fstr = py && /[fF][rRbB]?$|[rRbB][fF]$/.test(src.slice(Math.max(0, i - 2), i));
+      let j = i + close.length, seg = j;
+      const parts = [];
+      while (j < n) {
+        if (src[j] === '\\') { j += 2; continue; }
+        if (src.startsWith(close, j)) break;
+        if (!triple && c !== '`' && src[j] === '\n') break; // unterminated: stop at the line end
+        if ((c === '`' && src[j] === '$' && src[j + 1] === '{') || (fstr && src[j] === '{' && src[j + 1] !== '{')) {
+          parts.push([seg, j]); j = exprEnd(j + (c === '`' ? 2 : 1)); seg = j; continue;
+        }
+        if (fstr && src[j] === '{') { j += 2; continue; }
+        j++;
+      }
+      parts.push([seg, Math.min(j, n)]);
+      for (const [a, b] of parts) blank(code, a, b);
+      const end = Math.min(n, j + (src.startsWith(close, j) ? close.length : 0));
+      strings.push({ start: i, end, quote: c, triple, value: src.slice(i + close.length, Math.min(j, n)) });
+      i = end; continue;
+    }
+    if (!py && c === '/') {
+      // a regex literal when the previous token cannot end an expression
+      let p = i - 1; while (p >= 0 && /\s/.test(code[p])) p--;
+      const prev = p < 0 ? '' : code[p];
+      // after "<" it is a JSX closing tag, not a regex
+      let isRe = !prev || /[(,=:[!&|?{};+\-*%>~^]/.test(prev);
+      if (!isRe && /[\w$]/.test(prev)) { let q = p; while (q >= 0 && /[\w$]/.test(code[q])) q--; isRe = KW.has(code.slice(q + 1, p + 1).join('')); }
+      if (isRe) {
+        let j = i + 1, cls = false;
+        while (j < n && src[j] !== '\n') { if (src[j] === '\\') { j += 2; continue; } if (src[j] === '[') cls = true; else if (src[j] === ']') cls = false; else if (src[j] === '/' && !cls) break; j++; }
+        blank(code, i + 1, j); i = j + 1; continue;
+      }
+    }
+    i++;
+  }
+  return { code: code.join(''), comments, strings };
+}
+const codeLang = (file) => (/\.py$/i.test(file) ? 'py' : /\.(ts|tsx|mts|cts)$/i.test(file) ? 'ts' : 'js');
+const splitIdent = (id) => id.replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase().split(/[\s_$]+/).filter((x) => x.length >= 3);
+const STOP = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that', 'into', 'new', 'all', 'each', 'its', 'our', 'out', 'then', 'now', 'here', 'list', 'value', 'values']);
+const NARRATE = /^(?:initiali[sz]es?|increments?|decrements?|creates?|returns?|sets?|gets?|calls?|imports?|defines?|declares?|assigns?|loops?|iterates?|checks? if|adds?|saves?|updates?|prints?|logs?|instantiates?|exports?|appends?|push(?:es)?|closes?|opens?|reads?|writes?|converts?|parses?|fetch(?:es)?|loads?|stores?|calculates?|computes?|increase[sd]?|decrease[sd]?|send[s]?|removes?|deletes?|filters?|sorts?|renders?|validates?|waits?|builds?|formats?|finds?|clears?|resets?|shows?|hides?|copies|copy|moves?|merges?)\b/i;
+const WHY = /\b(because|so that|so the|why|note|workaround|hack|see|https?|todo|fixme|eslint|prettier|ts-|type:|noqa|pragma|istanbul|otherwise|unless|until|in case|avoid|must|never|always|only|keep|instead|without|else|first|before|after|once|cache|retry|limit)\b/i;
+const JS_CODE_LINE = /^(?:(?:const|let|var)\s+[\w$[{]+\s*=|return\b[^;]*;\s*$|(?:await\s+)?[\w$.[\]]+\(.*\)\s*;\s*$|import\s.+\sfrom\s|import\s+['"]|export\s+(?:default|const|function|class|\{)|function\s*\*?\s*[\w$]*\s*\(.*\)\s*\{|if\s*\(.*\)\s*\{\s*$|(?:for|while|switch)\s*\(.*\)\s*\{?\s*$|\}\s*(?:else\b.*)?\{?\s*$|[\w$.[\]]+\s*(?:[+\-*/]?=|\+\+|--)\s*.*;\s*$|\}\);?\s*$)/;
+const PY_CODE_LINE = /^(?:def\s+\w+\s*\(.*\)\s*(?:->.*)?:\s*$|class\s+\w+(?:\(.*\))?\s*:\s*$|return(?:\s+[\w.[\]()'",]+)?\s*$|import\s+[\w.]+(?:\s+as\s+\w+)?\s*$|from\s+[\w.]+\s+import\s+[\w*, ()]+$|(?:if|elif|while)\s+[\w.()[\]=!<> '"]+:\s*$|for\s+\w+(?:\s*,\s*\w+)*\s+in\s+.+:\s*$|else\s*:\s*$|print\(.*\)\s*$|[\w.[\]]+\s*[+\-*/]?=\s*[\w"'([{-].*$|[\w.]+\(.*\)\s*$)/;
+// A comment line that reads as code: it fits a code shape and has no two plain words in a row
+// (keywords such as "if", "in", "not" or "new" excepted), so "# quiet = no sound at night" stays prose.
+const CODE_WORDS = new Set(['if', 'else', 'elif', 'for', 'while', 'in', 'of', 'is', 'not', 'and', 'or', 'as', 'from', 'import', 'return', 'yield', 'await', 'async', 'new', 'typeof', 'instanceof', 'void', 'delete', 'lambda', 'def', 'class', 'const', 'let', 'var', 'function', 'export', 'default', 'None', 'True', 'False', 'null', 'undefined', 'raise', 'throw', 'with', 'case', 'extends']);
+const looksLikeCode = (t, py) => (py ? PY_CODE_LINE : JS_CODE_LINE).test(t) && ![...t.matchAll(/\b([A-Za-z_]\w*) (?=([A-Za-z_]\w*)\b)/g)].some((m) => !CODE_WORDS.has(m[1]) && !CODE_WORDS.has(m[2]));
+const GENERIC_JS_NAMES = /^(data|result|results|temp|tmp|obj|stuff|thing|things|foo|baz|myVar|val|info|ret)$/;
+const GENERIC_PY_NAMES = /^(data|result|results|temp|tmp|obj|stuff|thing|things|foo|baz|my_var|val|info|ret)$/;
+const GENERIC_FN = /^(?:(?:handle|do|process|manage)[_]?(?:stuff|data|things?|it|everything|something|info)|my_?function|helper(?:_?function)?|do_?it|func\d*|fn\d+)$/i;
+const VAGUE_ERROR = /^\s*(?:error|failed|failure|oops|unknown error|something went wrong|an? (?:unexpected |unknown )?error (?:has )?occurred|invalid(?: input)?|bad request|not found)[.!]?\s*$/i;
+const RESIDUE_CODE = /(\.\.\.\s*(?:the )?(?:rest of|existing|remaining|other) (?:the )?(?:code|implementation|logic|methods?|properties|fields|file)|(?:your|add your|insert|put your) (?:code|logic|implementation) here|\bimplement (?:me|this)\b|placeholder (?:implementation|logic|code)|same as (?:before|above)\b)/i;
+
+function codeDetectors(src, file) {
+  const lang = codeLang(file), py = lang === 'py', jsx = /\.(jsx|tsx)$/i.test(file);
+  const { code, comments, strings } = scanCode(src, lang);
+  const lines = src.split('\n'), cl = code.split('\n');
+  const starts = []; { let p = 0; for (const l of lines) { starts.push(p); p += l.length + 1; } }
+  // 0-based line of an offset, by binary search over the line starts
+  const lineNo = (i) => { let lo = 0, hi = starts.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (starts[mid] <= i) lo = mid; else hi = mid - 1; } return lo; };
+  const out = [], seen = {};
+  const add = (detector, i, evidence, message, severity, rule) => {
+    seen[detector] = (seen[detector] || 0) + 1;
+    if (seen[detector] <= 10) out.push({ detector, rule, file, line: lineNo(i) + 1, evidence: String(evidence).replace(/\s+/g, ' ').trim().slice(0, 160), message, severity });
+  };
+  const indent = (l) => (l.match(/^[ \t]*/) || [''])[0].replace(/\t/g, '    ').length;
+  const nextCode = (li) => { let j = li + 1; while (j < cl.length && !cl[j].trim()) j++; return j; };
+
+  // comments: narrating, commented-out code, TODO and placeholder residue
+  let run = null;
+  const flush = () => { if (run && run.strong) add('commented-code', run.i, run.firstStrong, run.n > 1 ? `${run.n} lines of commented-out code: delete them, version control keeps them.` : 'Commented-out code: delete it, version control keeps it.'); run = null; };
+  for (const c of comments) {
+    const t = c.text.replace(/^[\s*]+/, '').trimEnd();
+    if (!c.block && c.own && looksLikeCode(t.trim(), py) && !/^[!/@#]|^\s*(?:eslint|prettier|type:|noqa|pragma|-\*-)/.test(c.text)) {
+      const li = lineNo(c.start);
+      const strong = !/^[{}()[\];,\s]+$/.test(t);
+      if (run && run.last === li - 1) { run.n++; run.last = li; run.strong ||= strong; if (!run.firstStrong && strong) run.firstStrong = t; } else { flush(); run = { i: c.start, first: t, n: 1, last: li, strong, firstStrong: strong ? t : null }; }
+    } else flush();
+    if (!c.block && c.own && !looksLikeCode(t.trim(), py)) {
+      const words = t.trim().split(/\s+/).filter(Boolean);
+      const li = lineNo(c.start), next = cl[li + 1] || '';
+      if (words.length && words.length <= 6 && NARRATE.test(t.trim()) && !WHY.test(t) && next.trim()) {
+        const ids = (next.match(/[A-Za-z_$][\w$]*/g) || []).flatMap(splitIdent);
+        const said = words.map((w) => w.toLowerCase().replace(/[^a-z]/g, '')).filter((w) => w.length >= 3 && !STOP.has(w));
+        if (said.some((w) => ids.some((id) => id.slice(0, 4) === w.slice(0, 4)))) add('narrating-comment', c.start, `${t.trim()}  /  ${(lines[li + 1] || '').trim()}`, 'A comment that says what the next line plainly does: delete it, or say why instead.');
+      }
+    }
+    for (const line of c.text.split('\n')) {
+      if (RESIDUE_CODE.test(line)) add('todo-residue', c.start, line, 'Placeholder left where code should be.', 'high');
+      else if (/^\s*(?:TODO|FIXME|XXX|HACK)\b|\b(?:TODO|FIXME|XXX|HACK)\s*[:(]/.test(line) && !/#\d+|\b[A-Z][A-Z0-9]+-\d+\b|https?:\/\/|@\w+|\b(?:TODO|FIXME)\s*\(\w+\)/.test(line)) add('todo-residue', c.start, line, 'A TODO with no owner or ticket: finish it, or link the ticket.', 'low');
+    }
+  }
+  flush();
+  // stubs that throw "not implemented", and errors with messages that name no cause
+  for (const s of strings) {
+    const before = code.slice(Math.max(0, s.start - 60), s.start);
+    if (!/(?:new\s+\w*Error\s*\(|raise\s+\w+\s*\(|reject\s*\(\s*new\s+\w*Error\s*\()\s*[fFrR]?$/.test(before)) continue;
+    if (/^\s*not (?:yet )?implemented\.?\s*$/i.test(s.value)) add('todo-residue', s.start, lines[lineNo(s.start)], 'A "not implemented" stub on a code path.', 'medium');
+    else if (VAGUE_ERROR.test(s.value)) add('generic-error', s.start, lines[lineNo(s.start)], `"${s.value.trim()}" names no cause: give a stable code and say what failed and what to do.`);
+  }
+  // debug output
+  if (py) {
+    for (const m of code.matchAll(/\bbreakpoint\s*\(\s*\)|\bi?pdb\.set_trace\s*\(|^[ \t]*import\s+i?pdb\b/gm)) add('debug-output', m.index, m[0], 'Debugger call left in.', 'high');
+    for (const m of code.matchAll(/\bp?print\s*\(/g)) {
+      const l = lines[lineNo(m.index)];
+      if (/\bp?print\(\s*[fF]?["'](?:debug|here|test|xxx|>>>|-{3,}|\*{3,}|got here|checkpoint|dbg)|\bprint\(\s*(?:type|dir|vars)\(|\bprint\(\s*f["'][^"']*=\}|\bpprint\(/i.test(l)) add('debug-output', m.index, l, 'Debug print left in.');
+    }
+  } else {
+    for (const m of code.matchAll(/\bdebugger\b/g)) add('debug-output', m.index, lines[lineNo(m.index)], 'debugger statement left in.', 'high');
+    const testFile = /(?:\.(?:test|spec)\.[cm]?[jt]sx?$)|(?:^|[\/])(?:tests?|__tests__)[\/]/.test(file);
+    const cliFile = /^#!/.test(src) || /\bprocess\.(?:argv|exit)\b/.test(code) || /(?:^|[\/])(?:scripts|bin|cli)[\/]/.test(file);
+    if (!cliFile) for (const m of code.matchAll(/\bconsole\.(log|debug|trace|dir|table|time|timeEnd|count)\s*\(/g)) add('debug-output', m.index, lines[lineNo(m.index)], `console.${m[1]} left in: remove it or use the project's logger.`, testFile ? 'low' : undefined);
+  }
+  // dead code: unreachable lines and constant-false branches
+  for (let li = 0; li < cl.length; li++) {
+    const l = cl[li];
+    const term = py ? /^\s*(?:return\b|raise\b|break\s*$|continue\s*$)/.test(l) && !/[([{,\\]\s*$/.test(l) && (l.match(/[([{]/g) || []).length === (l.match(/[)\]}]/g) || []).length
+      : /^\s*(?:return\b[^;{]*;|throw\b[^;]*;|break;|continue;)\s*$/.test(l);
+    if (!term) continue;
+    const j = nextCode(li);
+    if (j >= cl.length) continue;
+    const nl = cl[j];
+    if (indent(nl) === indent(l) && !(py ? /^\s*(?:else|elif|except|finally|case|def|class|async\s+def|@)\b/ : /^\s*(?:\}|\)|\]|case\b|default\b|function\b)/).test(nl))
+      add('commented-code', starts[j], lines[j], `Unreachable: this line comes after a ${l.trim().split(/[\s;(]/)[0]} at the same level.`, undefined, 'code-dead-code');
+  }
+  for (const m of code.matchAll(py ? /^[ \t]*(?:if|while)\s+(?:False|0)\s*:/gm : /\b(?:if|while)\s*\(\s*(?:false|0)\s*\)/g)) add('commented-code', m.index, m[0], 'A branch that can never run.', undefined, 'code-dead-code');
+  // errors swallowed
+  if (py) {
+    for (const m of code.matchAll(/^([ \t]*)except\s*:/gm)) add('swallowed-error', m.index, m[0], 'A bare except catches everything, even Ctrl+C: name the error you expect.');
+    for (const m of code.matchAll(/^([ \t]*)except\b([^:\n]*):[ \t]*(?:\n(?:[ \t]*\n)*[ \t]*)?pass[ \t]*$/gm)) if (!/#/.test(src.slice(m.index, m.index + m[0].length))) {
+      const broad = !m[2].trim() || /\b(?:Base)?Exception\b/.test(m[2]);
+      add('swallowed-error', m.index, m[0], broad ? 'except Exception: pass hides every failure: catch the error you expect, or let it raise.' : 'An expected error ignored with no word of why: add a short comment.', broad ? 'high' : 'low');
+    }
+  } else {
+    for (const m of code.matchAll(/\bcatch\s*(?:\([^)]*\))?\s*\{\s*\}/g)) if (!/\/\/|\/\*/.test(src.slice(m.index, m.index + m[0].length))) add('swallowed-error', m.index, m[0], 'An empty catch block hides the failure: handle it, or say in a comment why it is safe to ignore.');
+    for (const m of code.matchAll(/\.catch\(\s*(?:\(\s*[\w$]*\s*\)|[\w$]+)\s*=>\s*(?:\{\s*\}|null|undefined)\s*\)/g)) if (!/\/\/|\/\*/.test(src.slice(m.index, m.index + m[0].length))) add('swallowed-error', m.index, m[0], 'A promise catch that throws the error away.', /\{\s*\}/.test(m[0]) ? undefined : 'medium');
+    for (const m of code.matchAll(/\bcatch\s*\(\s*([\w$]+)\s*\)\s*\{\s*console\.(?:log|error|warn)\([^;{}]*\);?\s*\}/g)) add('swallowed-error', m.index, m[0], 'A catch that only logs, then carries on as if nothing failed.', 'medium');
+  }
+  // pass-through wrappers
+  const norm = (s) => s.replace(/\s+/g, '');
+  if (py) {
+    for (const m of code.matchAll(/^([ \t]*)def\s+(\w+)\s*\(([^)]*)\)\s*(?:->[^:]+)?:[ \t]*\n[ \t]+return\s+([\w.]+)\s*\(([^)]*)\)[ \t]*$/gm))
+      if (m[2] !== m[4] && norm(m[3]) && norm(m[3]) === norm(m[5]) && !/[=*:]/.test(m[3])) { const j = nextCode(lineNo(m.index + m[0].length)); if (j >= cl.length || indent(cl[j]) <= indent(m[1])) add('pass-through-wrapper', m.index, m[0], `${m[2]}() only passes its arguments to ${m[4]}(): call ${m[4]}() directly.`); }
+  } else {
+    for (const m of code.matchAll(/\bfunction\s+([\w$]+)\s*\(([^)]*)\)\s*\{\s*return\s+(?:await\s+)?([\w$.]+)\s*\(([^)]*)\)\s*;?\s*\}/g))
+      if (m[1] !== m[3] && norm(m[2]) && norm(m[2]) === norm(m[4]) && !/[={}:]/.test(m[2])) add('pass-through-wrapper', m.index, m[0], `${m[1]}() only passes its arguments to ${m[3]}(): call ${m[3]}() directly.`);
+    for (const m of code.matchAll(/\b(?:const|let|var)\s+([\w$]+)\s*=\s*(?:async\s*)?\(([^)]*)\)\s*=>\s*(?:\{\s*return\s+)?(?:await\s+)?([\w$.]+)\s*\(([^)]*)\)\s*;?\s*\}?\s*;?\s*$/gm))
+      if (m[1] !== m[3] && norm(m[2]) && norm(m[2]) === norm(m[4]) && !/[={}:]/.test(m[2])) add('pass-through-wrapper', m.index, m[0], `${m[1]}() only passes its arguments to ${m[3]}(): call ${m[3]}() directly.`);
+  }
+  // generic names
+  const named = new Set();
+  const decl = py ? /^[ \t]*([A-Za-z_]\w*)\s*=(?!=)|\bdef\s+(\w+)\s*\(/gm : /\b(?:const|let|var)\s+([\w$]+)\s*=|\bfunction\s+([\w$]+)\s*\(/g;
+  for (const m of code.matchAll(decl)) {
+    const name = m[1] || m[2];
+    if (named.has(name)) continue;
+    if ((m[1] && (py ? GENERIC_PY_NAMES : GENERIC_JS_NAMES).test(name)) || GENERIC_FN.test(name)) { named.add(name); add('generic-name', m.index, m[0], `"${name}" says nothing about what it holds or does.`); }
+  }
+  // casts that change nothing, and loose types
+  const castRes = py ? [/\b(str|int|float|list|tuple|bool)\s*\(\s*\1\s*\(/g, /\bstr\s*\(\s*[fFrR]?["']/g, /\bint\s*\(\s*len\s*\([^()]*\)\s*\)/g, /\blist\s*\(\s*sorted\s*\(/g, /\bbool\s*\(\s*(?:True|False)\s*\)/g]
+    : [/\bas\s+unknown\s+as\b/g, /\bas\s+any\b/g, /(?<![\w$])<any>\s*[\w$(]/g, /\bBoolean\s*\(\s*!!/g, /!!\s*Boolean\s*\(/g, /\bString\s*\(\s*(["'`])\s*\1\s*\)/g, /\bString\s*\(\s*String\s*\(/g, /\bNumber\s*\(\s*(?:Number|parseInt|parseFloat)\s*\(/g, /\.toString\(\)\s*\.toString\(\)/g];
+  for (const re of castRes) for (const m of code.matchAll(re)) add('redundant-cast', m.index, lines[lineNo(m.index)], /any|unknown/.test(m[0]) ? `"${m[0].trim()}" switches the type checker off: fix the type where it starts.` : `"${m[0].trim()}" converts a value to the type it already has.`, /any|unknown/.test(m[0]) ? 'medium' : 'low');
+  if (lang === 'ts') for (const m of code.matchAll(/:\s*any\b(?!\s*[\w$])|\bany\[\]|\b(?:Array|Promise|Record<\s*string\s*,)\s*<?\s*any\s*>/g)) add('any-type', m.index, lines[lineNo(m.index)], 'any as a type: write the real type, or use unknown and narrow it.');
+  if (py && /\bfrom\s+typing\s+import\b[^\n]*\bAny\b/.test(code)) for (const m of code.matchAll(/(?::|->)\s*Any\b/g)) add('any-type', m.index, lines[lineNo(m.index)], 'Any as a type: write the real type.');
+  // unused imports
+  const uses = (name, from) => { const re = new RegExp(`(?<![\\w$])(?<!(?:^|[^.])\\.)${name.replace(/\$/g, '\\$')}(?![\\w$])`, 'g'); return [...code.matchAll(re)].some((x) => x.index < from[0] || x.index >= from[1]); };
+  if (py) {
+    if (!/(^|\/)__init__\.py$/.test(file)) for (const m of code.matchAll(/^[ \t]*(?:from\s+([\w.]+)\s+import\s+(\([^)]*\)|[^\n]+)|import\s+([^\n]+))/gm)) {
+      if (m[1] === '__future__') continue;
+      const list = (m[2] || m[3]).replace(/[()]/g, '').split(',').map((x) => x.trim()).filter((x) => x && x !== '*');
+      if (/noqa/.test(lines[lineNo(m.index)])) continue;
+      for (const item of list) { const [base, alias] = item.split(/\s+as\s+/); const name = alias || (m[3] ? base.split('.')[0] : base); if (name && /^\w+$/.test(name) && !uses(name, [m.index, m.index + m[0].length]) && !new RegExp(`["']${name}["']`).test(src)) add('unused-import', m.index, lines[lineNo(m.index)], `"${name}" is imported and never used.`); }
+    }
+  } else {
+    for (const m of code.matchAll(/^[ \t]*import\s+(?:type\s+)?([\w$]+)?\s*,?\s*(?:\*\s+as\s+([\w$]+)|\{([^}]*)\})?\s*from\s*["']/gm)) {
+      const names = [m[1], m[2], ...(m[3] || '').split(',').map((x) => x.trim().replace(/^type\s+/, '').split(/\s+as\s+/).pop())].filter((x) => x && /^[\w$]+$/.test(x));
+      if (/eslint-disable|@ts-ignore/.test(lines[lineNo(m.index)] + (lines[lineNo(m.index) - 1] || ''))) continue;
+      for (const name of names) if (!uses(name, [m.index, m.index + m[0].length])) add('unused-import', m.index, lines[lineNo(m.index)], `"${name}" is imported and never used.`);
+    }
+  }
+  // nesting five or more levels deep
+  const steps = cl.filter((l) => l.trim()).map(indent).filter((x) => x > 0);
+  const unit = Math.max(2, Math.min(...(steps.length ? steps : [4])));
+  for (let li = 0; li < cl.length; li++) if (/^\s*(?:if|for|while|switch|try|with|elif|else\s+if)\b/.test(cl[li]) && (py ? /:\s*$/ : /\{\s*$/).test(cl[li]) && indent(cl[li]) / unit >= (py ? 5 : 6)) { add('deep-nesting', starts[li], cl[li], `Control flow ${Math.round(indent(cl[li]) / unit)} levels deep: return early or pull the block into a named function.`); break; }
+  // docstrings longer than the function they describe, that mostly repeat its name
+  const restates = (doc, name) => {
+    const stems = splitIdent(name).map((w) => w.slice(0, 4));
+    const rows = doc.split('\n').map((x) => x.replace(/^[\s*]+/, '').trim()).filter((x) => x && !/^(?:@|:param|:return|args:|returns?:|raises:)/i.test(x));
+    return rows.length >= 3 && !WHY.test(doc) && rows.filter((x) => (x.toLowerCase().match(/[a-z]{3,}/g) || []).some((w) => stems.includes(w.slice(0, 4)))).length / rows.length >= 0.6;
+  };
+  if (py) {
+    for (const m of src.matchAll(/^([ \t]*)def\s+(\w+)\s*\([^)]*\)[^:\n]*:[ \t]*\n[ \t]+[rRuU]?("""|''')([\s\S]*?)\3[ \t]*\n/gm)) {
+      const docLines = m[4].split('\n').filter((x) => x.trim()).length;
+      let j = lineNo(m.index + m[0].length), body = 0;
+      while (j < lines.length && (!cl[j].trim() || indent(cl[j]) > indent(m[1]))) { if (cl[j].trim()) body++; j++; }
+      if (docLines >= 4 && body <= 2 && restates(m[4], m[2])) add('docstring-bloat', m.index, m[0].split('\n')[0], `A ${docLines}-line docstring on a ${body}-line function, mostly repeating its name.`);
+    }
+  } else {
+    for (const c of comments) {
+      if (!c.block || !/^\*/.test(c.text)) continue;
+      const docLines = c.text.split('\n').filter((x) => x.replace(/^[\s*]+/, '').trim()).length;
+      const fn = code.slice(c.end, c.end + 400).match(/^\s*(?:export\s+)?(?:async\s+)?(?:function\s*([\w$]*)\s*\([^)]*\)|(?:const|let)\s+([\w$]+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>)\s*\{([^{}]*)\}/);
+      if (fn && docLines >= 4 && fn[3].split(/[;\n]/).filter((x) => x.trim()).length <= 1 && restates(c.text, fn[1] || fn[2] || '')) add('docstring-bloat', c.start, c.text.split('\n').map((x) => x.replace(/^[\s*]+/, '').trim()).find(Boolean), `A ${docLines}-line doc comment on a one-line function, mostly repeating its name.`);
+    }
+  }
+  // style drift against the rest of the file
+  const tabLines = lines.filter((l) => /^\t/.test(l)).length, spaceLines = cl.filter((l) => /^ {2,}\S/.test(l)).length;
+  if (tabLines >= 3 && spaceLines >= 3 && Math.min(tabLines, spaceLines) / (tabLines + spaceLines) >= 0.1) add('style-drift', starts[lines.findIndex((l) => (tabLines < spaceLines ? /^\t/ : /^ {2,}\S/).test(l))] || 0, `${tabLines} lines indented with tabs, ${spaceLines} with spaces`, 'Tabs and spaces mixed for indentation: match the file.');
+  if (!jsx) {
+    const q = strings.filter((s) => !s.triple && s.quote !== '`' && !/["']/.test(s.value));
+    const sq = q.filter((s) => s.quote === "'"), dq = q.filter((s) => s.quote === '"');
+    const minority = sq.length < dq.length ? sq : dq;
+    if (sq.length >= 5 && dq.length >= 5 && minority.length / q.length >= 0.2) add('style-drift', minority[0].start, `${sq.length} single-quoted and ${dq.length} double-quoted strings`, 'Single and double quotes mixed for strings: match the file.');
+  }
+  if (!py) {
+    const vars = [...code.matchAll(/\bvar\s+[\w$]/g)], lets = (code.match(/\b(?:let|const)\s+[\w$[{]/g) || []).length;
+    if (vars.length && lets >= 3) add('style-drift', vars[0].index, lines[lineNo(vars[0].index)], 'var mixed with let and const: match the file.');
+  }
+  const ids = [...code.matchAll(py ? /\bdef\s+([A-Za-z_]\w*)|^[ \t]*([A-Za-z_]\w*)\s*=(?!=)/gm : /\b(?:const|let|var|function)\s+([A-Za-z_$][\w$]*)/g)].map((m) => [m[1] || m[2], m.index]).filter(([x]) => /[a-z]/.test(x) && !/^[A-Z0-9_]+$/.test(x));
+  const snake = ids.filter(([x]) => /^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$/.test(x)), camel = ids.filter(([x]) => /^[a-z][a-z0-9]*(?:[A-Z][a-z0-9]*)+$/.test(x));
+  const fewer = snake.length < camel.length ? snake : camel;
+  if (snake.length >= 2 && camel.length >= 2 && fewer.length / (snake.length + camel.length) >= 0.2) add('style-drift', fewer[0][1], `${camel.length} camelCase and ${snake.length} snake_case names`, 'camelCase and snake_case names mixed: match the file.');
   return out;
 }
 
 // ---- driver ---------------------------------------------------------------------------------
-const EXT = { '.html': 'html', '.htm': 'html', '.css': 'css', '.md': 'text', '.mdx': 'text', '.txt': 'text' };
-const DEFAULT_CONTEXT = { html: ['web', 'app'], css: ['web', 'app'], text: ['doc', 'copy'] };
+const EXT = { '.html': 'html', '.htm': 'html', '.css': 'css', '.md': 'text', '.mdx': 'text', '.txt': 'text',
+  '.js': 'code', '.mjs': 'code', '.cjs': 'code', '.jsx': 'code', '.ts': 'code', '.tsx': 'code', '.mts': 'code', '.cts': 'code', '.py': 'code' };
+const DEFAULT_CONTEXT = { html: ['web', 'app'], css: ['web', 'app'], text: ['doc', 'copy'], code: ['code'] };
+const SCRATCH = /^(notes|plan|thoughts|ideas|scratch|temp|tmp|todo|summary|implementation[-_ ]?summary|changes[-_ ]?summary|progress)\.mdx?$/i;
 function walk(p, out = []) {
   const st = fs.statSync(p);
-  if (st.isDirectory()) { for (const e of fs.readdirSync(p)) if (!['node_modules', '.git', 'dist', 'vendor', '.cache', 'fonts'].includes(e)) walk(path.join(p, e), out); }
+  if (st.isDirectory()) { for (const e of fs.readdirSync(p)) if (!['node_modules', '.git', 'dist', 'vendor', '.cache', 'fonts', '__pycache__', '.venv', 'venv', 'coverage', 'build', '.next'].includes(e)) walk(path.join(p, e), out); }
   // Licence and notice files are legal text, not design or copy.
-  else if (EXT[path.extname(p).toLowerCase()] && !/^(licen[cs]e|ofl|notice|copying|third[-_]?party)/i.test(path.basename(p)) && !/\.min\./.test(p)) out.push(p);
+  else if (EXT[path.extname(p).toLowerCase()] && !/^(licen[cs]e|ofl|notice|copying|third[-_]?party)/i.test(path.basename(p)) && !/\.min\.|\.d\.ts$/.test(p)) out.push(p);
   return out;
 }
 const RULE = Object.fromEntries(RULES.rules.map((r) => [r.id, r]));
@@ -558,15 +912,21 @@ function resolve(raw, contexts) {
 export function checkText(content, kind, file = '<input>', { context, year = new Date().getFullYear(), project = true } = {}) {
   // Markdown and text in a UI context are working notes, not interface copy: UI rules check HTML and CSS only.
   if (kind === 'text' && (context === 'app' || context === 'web')) return [];
-  const raw = kind === 'html' ? [...htmlDetectors(content, file, year), ...cssDetectors(htmlToCss(content), file)]
+  // Source code is checked only in the code context. In the code context, pages and stylesheets are
+  // skipped, and Markdown is checked only for working notes left in the change.
+  if (kind === 'code' && context && context !== 'code') return [];
+  if (context === 'code' && kind !== 'code') return kind === 'text' && SCRATCH.test(path.basename(file)) ? resolve([{ detector: 'scratch-file', file, line: 1, evidence: path.basename(file), message: `${path.basename(file)} looks like working notes: keep it out of the change, or fold what matters into the docs.` }], ['code']) : [];
+  const raw = kind === 'code' ? codeDetectors(content, file)
+    : kind === 'html' ? [...htmlDetectors(content, file, year), ...cssDetectors(htmlToCss(content), file)]
     : kind === 'css' ? cssDetectors(content, file) : textDetectors(content, file, year);
-  if (project && kind !== 'text') raw.push(...projectChecks([{ css: kind === 'html' ? htmlToCss(content) : content, file }]));
+  if (project && (kind === 'html' || kind === 'css')) raw.push(...projectChecks([{ css: kind === 'html' ? htmlToCss(content) : content, file }]));
   return resolve(raw, context ? [context] : DEFAULT_CONTEXT[kind]);
 }
 export function checkPaths(paths, opts = {}) {
   const files = paths.flatMap((p) => walk(p));
   const findings = files.flatMap((f) => checkText(fs.readFileSync(f, 'utf8'), EXT[path.extname(f).toLowerCase()], f, { ...opts, project: false }));
-  const styled = files.filter((f) => EXT[path.extname(f).toLowerCase()] !== 'text').map((f) => ({ file: f, css: EXT[path.extname(f).toLowerCase()] === 'html' ? htmlToCss(fs.readFileSync(f, 'utf8')) : fs.readFileSync(f, 'utf8') }));
+  // project-level style checks have no rules in the code context, so skip their work there
+  const styled = opts.context === 'code' ? [] : files.filter((f) => ['html', 'css'].includes(EXT[path.extname(f).toLowerCase()])).map((f) => ({ file: f, css: EXT[path.extname(f).toLowerCase()] === 'html' ? htmlToCss(fs.readFileSync(f, 'utf8')) : fs.readFileSync(f, 'utf8') }));
   if (styled.length) findings.push(...resolve(projectChecks(styled), opts.context ? [opts.context] : ['web', 'app']));
   if (opts.pairing) findings.push(...resolve(checkPairing(fs.existsSync(opts.pairing) ? fs.readFileSync(opts.pairing, 'utf8') : '', opts.pairing), opts.context ? [opts.context] : ['web', 'app', 'deck', 'doc']));
   return { files: files.length, findings };
@@ -598,7 +958,7 @@ function cli() {
   if (args.includes('--rubric')) { process.stdout.write(listMarkdown(context, ['screenshot', 'judgement'])); return; }
   const skip = new Set(['--context', '--json', '--year', '--pairing']);
   const targets = args.filter((a, i) => !a.startsWith('--') && !skip.has(args[i - 1]));
-  if (!targets.length) { console.error('Usage: node check-slop.mjs <file or folder>... [--context web|app|deck|doc|copy|image] [--json out.json] [--strict]'); process.exitCode = 2; return; }
+  if (!targets.length) { console.error('Usage: node check-slop.mjs <file or folder>... [--context web|app|deck|doc|copy|image|code] [--json out.json] [--strict]'); process.exitCode = 2; return; }
   const res = checkPaths(targets, { context, year: +(opt('--year') || new Date().getFullYear()), pairing: opt('--pairing') });
   const order = { high: 0, medium: 1, low: 2 };
   res.findings.sort((a, b) => order[a.severity] - order[b.severity] || a.file.localeCompare(b.file) || a.line - b.line);

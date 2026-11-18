@@ -48,6 +48,12 @@ MEDIUM gradient-hero        sloppy.html:34  Indigo/violet gradient: the default 
        .chat-bubble { background: linear-gradient(135deg,#6366f1,#ec4899) }
 MEDIUM floating-widgets     sloppy.html:34  Floating widget following the reader: keep only the navigation fixed.
        .chat-bubble { position: fixed }
+MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a href="#">
+MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a href="#">
+MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a class="cta" href="#">
 MEDIUM eyebrow-label        sloppy.html:46  Small label on its own line above a heading: banned outright.
        ✨ New: AI-powered lending <h1
 MEDIUM hype-copy            sloppy.html:46  "AI-powered": say concretely what it does for whom.
@@ -68,6 +74,10 @@ MEDIUM stock-lines          sloppy.html:48  "at your fingertips" fits any busine
        at your fingertips
 MEDIUM stock-lines          sloppy.html:48  "in just a few clicks" fits any business: say what this one does, for whom.
        in just a few clicks
+MEDIUM dead-controls        sloppy.html:49  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a class="cta" href="#">
+MEDIUM dead-controls        sloppy.html:49  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a class="ghost" href="#">
 MEDIUM auto-advancing       sloppy.html:52  Carousel, slider or tilt effect: show items whole and let people move them.
        class="ticker"
 MEDIUM sparkle-ticker       sloppy.html:52  Sparkle-separated phrases: one clear headline instead.
@@ -92,6 +102,12 @@ MEDIUM fake-proof           sloppy.html:68  Quote attributed to "Sarah J.": use 
        — Sarah J.
 MEDIUM fake-logos           sloppy.html:69  "Trusted by" strip: only real clients with official logo files.
        Trusted by
+MEDIUM dead-controls        sloppy.html:72  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a class="cta" href="#">
+MEDIUM dead-controls        sloppy.html:73  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a class="cta" href="#">
+MEDIUM dead-controls        sloppy.html:74  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a class="cta" href="#">
 MEDIUM vague-controls       sloppy.html:77  "Submit" does not say what happens: name the action and its object.
        <button>Submit</button>
 MEDIUM build-slogans        sloppy.html:79  "Built with React" describes how it was made, not what it does for the reader.
@@ -116,6 +132,8 @@ LOW    em-dashes            sloppy.html:48  2 em dashes: use commas, colons, par
        —
 LOW    twin-ctas            sloppy.html:49  Twin buttons: make the second a quiet text link.
        "Get started" + "Learn more"
+LOW    straight-quotes      sloppy.html:55  3 straight quote marks in visible text: use curly quotes and apostrophes.
+       hing you need. Nothing you don't.
 LOW    ing-riders           sloppy.html:57  ", ensuring ..." claims a meaning the sentence never shows: state the result or stop at the fact.
        ensuring a smooth experience
 LOW    puffery              sloppy.html:58  "serves as": use is, has or does, or name the thing.
@@ -135,4 +153,4 @@ LOW    fake-discount        sloppy.html:73  Struck-through price: show a discoun
 LOW    most-popular         sloppy.html:73  "Most popular": keep only if it is actually the plan most people pick.
        Most popular
 
-slop-guard: 1 file(s), 68 finding(s): 4 high, 46 medium, 18 low (context: web). Hits are evidence for a reviewer, not a verdict.
+slop-guard: 1 file(s), 77 finding(s): 4 high, 54 medium, 19 low (context: web). Hits are evidence for a reviewer, not a verdict.

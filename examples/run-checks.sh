@@ -14,3 +14,5 @@ run dashboard sloppy.html app
 run dashboard clean.html app type-pairing.md
 run writing sloppy.md copy
 run writing clean.md copy
+run code sloppy.js code
+run code clean.js code

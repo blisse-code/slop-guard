@@ -19,5 +19,6 @@ jobs:
           node check-slop.mjs examples/landing/clean.html --context web --pairing examples/landing/type-pairing.md --strict
           node check-slop.mjs examples/dashboard/clean.html --context app --pairing examples/dashboard/type-pairing.md --strict
           node check-slop.mjs examples/writing/clean.md --context copy --strict
+          node check-slop.mjs examples/code/clean.js --context code --strict
       - name: RULES.md matches rules.json
         run: node check-slop.mjs --rules-md | diff -u RULES.md -

@@ -46,6 +46,14 @@ MEDIUM emoji-headings       sloppy.html:39  Emoji used as an interface icon or b
        👥 Members
 MEDIUM emoji-headings       sloppy.html:39  Emoji used as an interface icon or bullet.
        ⚙️ Settings
+MEDIUM dead-controls        sloppy.html:39  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a href="#">
+MEDIUM dead-controls        sloppy.html:39  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a href="#">
+MEDIUM dead-controls        sloppy.html:39  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a href="#">
+MEDIUM dead-controls        sloppy.html:39  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+       <a href="#">
 MEDIUM emoji-headings       sloppy.html:43  Emoji in a heading.
        Welcome back, Sam ✨
 MEDIUM hype-copy            sloppy.html:43  "Welcome back, Sam": say concretely what it does for whom.
@@ -73,4 +81,4 @@ LOW    decorative-shortcuts sloppy.html:44  Shortcut hint pill: show it only if 
 LOW    em-dashes            sloppy.html:46  1 em dash: use commas, colons, parentheses or a new sentence.
        —
 
-slop-guard: 1 file(s), 37 finding(s): 9 high, 21 medium, 7 low (context: app). Hits are evidence for a reviewer, not a verdict.
+slop-guard: 1 file(s), 41 finding(s): 9 high, 25 medium, 7 low (context: app). Hits are evidence for a reviewer, not a verdict.

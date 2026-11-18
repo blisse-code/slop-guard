@@ -1,0 +1,222 @@
+{
+  "version": "2.1.0",
+  "context": "code",
+  "counts": {
+    "high": 3,
+    "medium": 8,
+    "low": 10
+  },
+  "files": 1,
+  "findings": [
+    {
+      "rule": "code-swallowed-errors",
+      "detector": "swallowed-error",
+      "severity": "high",
+      "file": "sloppy.js",
+      "line": 21,
+      "evidence": "catch (e) {}",
+      "message": "An empty catch block hides the failure: handle it, or say in a comment why it is safe to ignore.",
+      "instead": "Catch only what you can handle, say why in a comment when you ignore an error on purpose, and let the rest fail loudly. Guard the real boundaries: user input, the network, files."
+    },
+    {
+      "rule": "code-swallowed-errors",
+      "detector": "swallowed-error",
+      "severity": "high",
+      "file": "sloppy.js",
+      "line": 51,
+      "evidence": ".catch(() => {})",
+      "message": "A promise catch that throws the error away.",
+      "instead": "Catch only what you can handle, say why in a comment when you ignore an error on purpose, and let the rest fail loudly. Guard the real boundaries: user input, the network, files."
+    },
+    {
+      "rule": "code-todo-residue",
+      "detector": "todo-residue",
+      "severity": "high",
+      "file": "sloppy.js",
+      "line": 56,
+      "evidence": "... rest of the code here",
+      "message": "Placeholder left where code should be.",
+      "instead": "Finish it, or turn the TODO into a ticket and link it. Never ship a stub on a path people use."
+    },
+    {
+      "rule": "code-unused-imports",
+      "detector": "unused-import",
+      "severity": "medium",
+      "file": "sloppy.js",
+      "line": 2,
+      "evidence": "import { readFile, writeFile } from 'node:fs/promises';",
+      "message": "\"writeFile\" is imported and never used.",
+      "instead": "Delete them. Keep side-effect imports (styles, polyfills) and deliberate re-exports."
+    },
+    {
+      "rule": "code-unused-imports",
+      "detector": "unused-import",
+      "severity": "medium",
+      "file": "sloppy.js",
+      "line": 4,
+      "evidence": "import { formatDate } from './dates.js';",
+      "message": "\"formatDate\" is imported and never used.",
+      "instead": "Delete them. Keep side-effect imports (styles, polyfills) and deliberate re-exports."
+    },
+    {
+      "rule": "code-debug-output",
+      "detector": "debug-output",
+      "severity": "medium",
+      "file": "sloppy.js",
+      "line": 28,
+      "evidence": "console.log(\"loans\", loans);",
+      "message": "console.log left in: remove it or use the project's logger.",
+      "instead": "Remove it, or send real messages through the project's logger. Command-line tools that print on purpose are fine."
+    },
+    {
+      "rule": "code-dead-code",
+      "detector": "commented-code",
+      "severity": "medium",
+      "file": "sloppy.js",
+      "line": 42,
+      "evidence": "const old = loans.filter((l) => l.late);",
+      "message": "2 lines of commented-out code: delete them, version control keeps them.",
+      "instead": "Delete it. Version control keeps the old code."
+    },
+    {
+      "rule": "code-debug-output",
+      "detector": "debug-output",
+      "severity": "medium",
+      "file": "sloppy.js",
+      "line": 45,
+      "evidence": "console.log('done');",
+      "message": "console.log left in: remove it or use the project's logger.",
+      "instead": "Remove it, or send real messages through the project's logger. Command-line tools that print on purpose are fine."
+    },
+    {
+      "rule": "code-dead-code",
+      "detector": "commented-code",
+      "severity": "medium",
+      "file": "sloppy.js",
+      "line": 45,
+      "evidence": "console.log('done');",
+      "message": "Unreachable: this line comes after a return at the same level.",
+      "instead": "Delete it. Version control keeps the old code."
+    },
+    {
+      "rule": "code-generic-errors",
+      "detector": "generic-error",
+      "severity": "medium",
+      "file": "sloppy.js",
+      "line": 52,
+      "evidence": "if (!loan.member) throw new Error('Something went wrong');",
+      "message": "\"Something went wrong\" names no cause: give a stable code and say what failed and what to do.",
+      "instead": "Give each failure a stable code and a plain message that says what failed and what to do next."
+    },
+    {
+      "rule": "code-todo-residue",
+      "detector": "todo-residue",
+      "severity": "medium",
+      "file": "sloppy.js",
+      "line": 57,
+      "evidence": "throw new Error(\"Not implemented\");",
+      "message": "A \"not implemented\" stub on a code path.",
+      "instead": "Finish it, or turn the TODO into a ticket and link it. Never ship a stub on a path people use."
+    },
+    {
+      "rule": "code-style-drift",
+      "detector": "style-drift",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 6,
+      "evidence": "var DAY = 24 * 60 * 60 * 1000;",
+      "message": "var mixed with let and const: match the file.",
+      "instead": "Match the surrounding file and the project's formatter, even where you prefer another style."
+    },
+    {
+      "rule": "code-docstring-bloat",
+      "detector": "docstring-bloat",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 8,
+      "evidence": "Gets the loans.",
+      "message": "A 5-line doc comment on a one-line function, mostly repeating its name.",
+      "instead": "Keep a docstring when it says something the signature cannot: units, side effects, errors, a surprising rule."
+    },
+    {
+      "rule": "code-needless-wrappers",
+      "detector": "pass-through-wrapper",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 15,
+      "evidence": "function getLoans(file) { return loadLoans(file); }",
+      "message": "getLoans() only passes its arguments to loadLoans(): call loadLoans() directly.",
+      "instead": "Call the real thing directly. Add a layer when a second use or a real seam needs it."
+    },
+    {
+      "rule": "code-generic-names",
+      "detector": "generic-name",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 19,
+      "evidence": "const data =",
+      "message": "\"data\" says nothing about what it holds or does.",
+      "instead": "Name the thing by what it holds or does: overdueLoans, parseInvoice, sendReminder."
+    },
+    {
+      "rule": "code-redundant-casts",
+      "detector": "redundant-cast",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 20,
+      "evidence": "return Boolean(!!data) && JSON.parse(data);",
+      "message": "\"Boolean(!!\" converts a value to the type it already has.",
+      "instead": "Fix the type where it starts and drop the cast. Where a cast is needed, cast once, to the narrowest type."
+    },
+    {
+      "rule": "code-generic-names",
+      "detector": "generic-name",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 25,
+      "evidence": "function handleStuff(",
+      "message": "\"handleStuff\" says nothing about what it holds or does.",
+      "instead": "Name the thing by what it holds or does: overdueLoans, parseInvoice, sendReminder."
+    },
+    {
+      "rule": "code-generic-names",
+      "detector": "generic-name",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 26,
+      "evidence": "const result =",
+      "message": "\"result\" says nothing about what it holds or does.",
+      "instead": "Name the thing by what it holds or does: overdueLoans, parseInvoice, sendReminder."
+    },
+    {
+      "rule": "code-deep-nesting",
+      "detector": "deep-nesting",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 34,
+      "evidence": "if (today - loan.due > DAY) {",
+      "message": "Control flow 6 levels deep: return early or pull the block into a named function.",
+      "instead": "Return early, pull a block into a named function, or turn the condition round."
+    },
+    {
+      "rule": "code-todo-residue",
+      "detector": "todo-residue",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 49,
+      "evidence": "TODO: add error handling",
+      "message": "A TODO with no owner or ticket: finish it, or link the ticket.",
+      "instead": "Finish it, or turn the TODO into a ticket and link it. Never ship a stub on a path people use."
+    },
+    {
+      "rule": "code-narrating-comments",
+      "detector": "narrating-comment",
+      "severity": "low",
+      "file": "sloppy.js",
+      "line": 50,
+      "evidence": "Send the email / await sendEmail(loan.member.email, `Please return the ${loan.tool}`).catch(() => {});",
+      "message": "A comment that says what the next line plainly does: delete it, or say why instead.",
+      "instead": "Delete them. Keep comments that say why: a constraint, a workaround, a link to the decision."
+    }
+  ]
+}
