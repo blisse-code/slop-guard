@@ -1,0 +1,76 @@
+HIGH   tiny-text            sloppy.html:20  Text at 9px: below the 11px floor for any label or control.
+       .kpi small { font-size: 9px }
+HIGH   tiny-text            sloppy.html:22  Text at 10px: below the 11px floor for any label or control.
+       .badge { font-size: 10px }
+HIGH   focus-removed        sloppy.html:31  Focus outline removed with no visible replacement.
+       button:focus { outline: none }
+HIGH   unnamed-controls     sloppy.html:57  A button with no name a screen reader can say.
+       <button class="icon-btn"><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="currentColor"/></svg></button>
+HIGH   placeholder-content  sloppy.html:57  Placeholder content "Jane Doe".
+       Jane Doe
+HIGH   unnamed-controls     sloppy.html:58  A button with no name a screen reader can say.
+       <button class="icon-btn"><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="currentColor"/></svg></button>
+HIGH   placeholder-content  sloppy.html:58  Placeholder content "John Doe".
+       John Doe
+HIGH   unnamed-controls     sloppy.html:59  A button with no name a screen reader can say.
+       <button class="icon-btn"><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="currentColor"/></svg></button>
+HIGH   placeholder-content  sloppy.html:59  Placeholder content "Acme Corp".
+       Acme Corp
+MEDIUM type-tokens          sloppy.html:1  Set a heading (display) font token and a body font token, e.g. --font-display and --font-body, and use them everywhere.
+       heading token: none; body token: none
+MEDIUM reduced-motion       sloppy.html:1  Animation with no prefers-reduced-motion fallback anywhere in the project.
+       @keyframes ping
+MEDIUM type-banned-defaults sloppy.html:9  space grotesk is a banned default: choose a pairing under the type rules, or record why the brand mandates it.
+       body { font-family: "Space Grotesk", sans-serif }
+MEDIUM gradient-hero        sloppy.html:18  Indigo/violet gradient: the default AI palette.
+       .kpi { background: linear-gradient(160deg, rgba(99,102,241,.18), rgba(168,85,247,.06)) }
+MEDIUM glow                 sloppy.html:18  Coloured glow shadow.
+       .kpi { box-shadow: 0 0 24px rgba(139,92,246,.25) }
+MEDIUM side-stripe          sloppy.html:18  Thick coloured stripe down one side of a card.
+       .kpi { border-left: 3px solid #a855f7 }
+MEDIUM gradient-text        sloppy.html:19  Gradient fill on text.
+       .kpi b { background-clip: text }
+MEDIUM gradient-hero        sloppy.html:19  Indigo/violet gradient: the default AI palette.
+       .kpi b { background: linear-gradient(90deg,#22d3ee,#a855f7) }
+MEDIUM glow                 sloppy.html:23  Coloured glow shadow.
+       .live { box-shadow: 0 0 12px #22c55e }
+MEDIUM gradient-hero        sloppy.html:29  Indigo/violet gradient: the default AI palette.
+       .btn { background: linear-gradient(90deg,#6366f1,#ec4899) }
+MEDIUM gradient-button      sloppy.html:29  Two-tone gradient button.
+       .btn { background: linear-gradient(90deg,#6366f1,#ec4899) }
+MEDIUM emoji-headings       sloppy.html:39  Emoji used as an interface icon or bullet.
+       🏠 Home
+MEDIUM emoji-headings       sloppy.html:39  Emoji used as an interface icon or bullet.
+       📦 Inventory
+MEDIUM emoji-headings       sloppy.html:39  Emoji used as an interface icon or bullet.
+       👥 Members
+MEDIUM emoji-headings       sloppy.html:39  Emoji used as an interface icon or bullet.
+       ⚙️ Settings
+MEDIUM emoji-headings       sloppy.html:43  Emoji in a heading.
+       Welcome back, Sam ✨
+MEDIUM hype-copy            sloppy.html:43  "Welcome back, Sam": say concretely what it does for whom.
+       Welcome back, Sam
+MEDIUM hype-copy            sloppy.html:46  "seamlessly": say concretely what it does for whom.
+       seamlessly
+MEDIUM heading-order        sloppy.html:54  Heading levels jump from h1 to h3.
+       h1 → h3
+MEDIUM vague-controls       sloppy.html:64  "Submit" does not say what happens: name the action and its object.
+       <button>Submit</button>
+MEDIUM vague-controls       sloppy.html:64  "OK" does not say what happens: name the action and its object.
+       <button>OK</button>
+LOW    decorative-glass     sloppy.html:18  Frosted glass: keep only over rich imagery.
+       .kpi { backdrop-filter: blur(10px) }
+LOW    fake-status          sloppy.html:23  Pulsing status indicator: keep it only if it shows real, changing live data.
+       .live { animation: ping 1.2s infinite }
+LOW    truncated-cards      sloppy.html:28  Text cut off with "…": never cut what people need to read.
+       td { text-overflow: ellipsis }
+LOW    large-pills          sloppy.html:29  Pill-shaped button: use straight or subtly rounded corners unless pills are the deliberate shape language.
+       .btn { border-radius: 9999px }
+LOW    transition-all       sloppy.html:29  transition: all as a reflex: name the properties that change.
+       .btn { transition: all .25s }
+LOW    decorative-shortcuts sloppy.html:44  Shortcut hint pill: show it only if the shortcut exists and works.
+       ⌘K
+LOW    em-dashes            sloppy.html:46  1 em dash: use commas, colons, parentheses or a new sentence.
+       —
+
+slop-guard: 1 file(s), 37 finding(s): 9 high, 21 medium, 7 low (context: app). Hits are evidence for a reviewer, not a verdict.

@@ -1,0 +1,692 @@
+{
+  "version": "2.0.0",
+  "context": "web",
+  "counts": {
+    "high": 4,
+    "medium": 46,
+    "low": 18
+  },
+  "files": 1,
+  "findings": [
+    {
+      "rule": "tiny-text",
+      "detector": "tiny-text",
+      "severity": "high",
+      "file": "sloppy.html",
+      "line": 30,
+      "evidence": ".stats small { font-size: 10px }",
+      "message": "Text at 10px: below the 11px floor for any label or control.",
+      "instead": "Use 16px body where practical, never below 12px; controls and labels at least 11px."
+    },
+    {
+      "rule": "placeholder-content",
+      "detector": "placeholders",
+      "severity": "high",
+      "file": "sloppy.html",
+      "line": 69,
+      "evidence": "Acme Inc",
+      "message": "Placeholder content \"Acme Inc\".",
+      "instead": "Before you publish, look through every page for placeholder names, emails and dates, and swap in your own."
+    },
+    {
+      "rule": "placeholder-labels",
+      "detector": "placeholder-label",
+      "severity": "high",
+      "file": "sloppy.html",
+      "line": 77,
+      "evidence": "<input type=\"email\" placeholder=\"you@example.com\">",
+      "message": "Field whose only label is its placeholder.",
+      "instead": "Give every field a visible label above it that stays put, like \"Email\" or \"Arrival date\"."
+    },
+    {
+      "rule": "placeholder-content",
+      "detector": "placeholders",
+      "severity": "high",
+      "file": "sloppy.html",
+      "line": 79,
+      "evidence": "© 2023",
+      "message": "Copyright year 2023 is out of date.",
+      "instead": "Before you publish, look through every page for placeholder names, emails and dates, and swap in your own."
+    },
+    {
+      "rule": "page-basics",
+      "detector": "page-basics",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 1,
+      "evidence": "missing: viewport, description, og:image, favicon",
+      "message": "The page has no viewport, description, og:image, favicon.",
+      "instead": "Set <html lang>, <title>, the viewport meta, a meta description, a favicon and og:image before calling it done."
+    },
+    {
+      "rule": "type-tokens",
+      "detector": "type-tokens",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 1,
+      "evidence": "heading token: none; body token: none",
+      "message": "Set a heading (display) font token and a body font token, e.g. --font-display and --font-body, and use them everywhere.",
+      "instead": "Use free Google Fonts and set a heading (display) token and a body token, then use the tokens everywhere."
+    },
+    {
+      "rule": "reduced-motion",
+      "detector": "no-reduced-motion",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 1,
+      "evidence": "@keyframes marquee",
+      "message": "Animation with no prefers-reduced-motion fallback anywhere in the project.",
+      "instead": "Put non-essential motion inside @media (prefers-reduced-motion: no-preference), or turn it off under reduce."
+    },
+    {
+      "rule": "gradient-hero",
+      "detector": "violet-gradient",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 9,
+      "evidence": "body { background: radial-gradient(circle at 50% 0, rgba(124,58,237,.45), transparent 60%), #0b0b12 }",
+      "message": "Indigo/violet gradient: the default AI palette.",
+      "instead": "Pick a palette from a real reference style and commit to it; use gradients only where they mean something."
+    },
+    {
+      "rule": "glow",
+      "detector": "glow",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 9,
+      "evidence": "body { background: radial-gradient(circle at 50% 0, rgba(124,58,237,.45), transparent 60%), #0b0b12 }",
+      "message": "Coloured radial haze over the page.",
+      "instead": "Use restrained elevation or borders; no colored glow."
+    },
+    {
+      "rule": "type-banned-defaults",
+      "detector": "overused-font",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 9,
+      "evidence": "body { font-family: Inter, sans-serif }",
+      "message": "inter is a banned default: choose a pairing under the type rules, or record why the brand mandates it.",
+      "instead": "Choose the pairing for the brand under these rules. A default is only acceptable when the brand already mandates it, recorded in the pairing record."
+    },
+    {
+      "rule": "eyebrow-label",
+      "detector": "eyebrow",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 13,
+      "evidence": ".eyebrow { text-transform: uppercase; letter-spacing: .25em }",
+      "message": "Small spaced-out uppercase label: banned outright above headings.",
+      "instead": "Put necessary context in the heading or supporting text."
+    },
+    {
+      "rule": "hairline-headline",
+      "detector": "thin-headline",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 14,
+      "evidence": ".hero h1 { font-weight: 100 }",
+      "message": "Hairline-thin headline.",
+      "instead": "Give the headline enough weight and contrast to carry the page."
+    },
+    {
+      "rule": "gradient-text",
+      "detector": "gradient-text",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 15,
+      "evidence": ".gradient-title { background-clip: text }",
+      "message": "Gradient fill on text.",
+      "instead": "Reserve special treatments for one hero moment."
+    },
+    {
+      "rule": "gradient-hero",
+      "detector": "violet-gradient",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 15,
+      "evidence": ".gradient-title { background: linear-gradient(90deg, #22d3ee, #a855f7) }",
+      "message": "Indigo/violet gradient: the default AI palette.",
+      "instead": "Pick a palette from a real reference style and commit to it; use gradients only where they mean something."
+    },
+    {
+      "rule": "gradient-hero",
+      "detector": "violet-gradient",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 17,
+      "evidence": ".cta { background: linear-gradient(90deg, #6366f1, #ec4899) }",
+      "message": "Indigo/violet gradient: the default AI palette.",
+      "instead": "Pick a palette from a real reference style and commit to it; use gradients only where they mean something."
+    },
+    {
+      "rule": "gradient-button",
+      "detector": "gradient-button",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 17,
+      "evidence": ".cta { background: linear-gradient(90deg, #6366f1, #ec4899) }",
+      "message": "Two-tone gradient button.",
+      "instead": "Solid buttons in the brand color; save gradients for one deliberate moment, if any."
+    },
+    {
+      "rule": "glow",
+      "detector": "glow",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 17,
+      "evidence": ".cta { box-shadow: 0 0 40px rgba(168,85,247,.6) }",
+      "message": "Coloured glow shadow.",
+      "instead": "Use restrained elevation or borders; no colored glow."
+    },
+    {
+      "rule": "glow",
+      "detector": "blur-blob",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 19,
+      "evidence": ".blob { filter: blur(120px) }",
+      "message": "Heavily blurred colour blob used as background decoration.",
+      "instead": "Use restrained elevation or borders; no colored glow."
+    },
+    {
+      "rule": "sparkle-ticker",
+      "detector": "ticker",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 21,
+      "evidence": ".ticker span { animation: marquee 18s linear infinite }",
+      "message": "Content that scrolls by itself, non-stop.",
+      "instead": "Let one clear headline do the work; set a short list in normal case with plain separators."
+    },
+    {
+      "rule": "glow",
+      "detector": "glow",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 24,
+      "evidence": ".card { box-shadow: 0 0 30px rgba(139,92,246,.35) }",
+      "message": "Coloured glow shadow.",
+      "instead": "Use restrained elevation or borders; no colored glow."
+    },
+    {
+      "rule": "side-stripe",
+      "detector": "side-stripe",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 24,
+      "evidence": ".card { border-left: 4px solid #8b5cf6 }",
+      "message": "Thick coloured stripe down one side of a card.",
+      "instead": "Use a deliberate, content-led alternative (a heading, an icon with a label, position)."
+    },
+    {
+      "rule": "gradient-hero",
+      "detector": "violet-gradient",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 27,
+      "evidence": ".icon-box { background: linear-gradient(135deg, #6366f1, #a855f7) }",
+      "message": "Indigo/violet gradient: the default AI palette.",
+      "instead": "Pick a palette from a real reference style and commit to it; use gradients only where they mean something."
+    },
+    {
+      "rule": "hidden-at-rest",
+      "detector": "hidden-at-rest",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 31,
+      "evidence": ".reveal { opacity: 0 }",
+      "message": "Content starts invisible and waits for a script to reveal it.",
+      "instead": "Render content visible by default and animate from a visible state, so a failed script never hides the page."
+    },
+    {
+      "rule": "gradient-hero",
+      "detector": "violet-gradient",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 34,
+      "evidence": ".chat-bubble { background: linear-gradient(135deg,#6366f1,#ec4899) }",
+      "message": "Indigo/violet gradient: the default AI palette.",
+      "instead": "Pick a palette from a real reference style and commit to it; use gradients only where they mean something."
+    },
+    {
+      "rule": "floating-widgets",
+      "detector": "floating-widgets",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 34,
+      "evidence": ".chat-bubble { position: fixed }",
+      "message": "Floating widget following the reader: keep only the navigation fixed.",
+      "instead": "Keep only the navigation fixed (plus one action bar on phones); put the newsletter signup in the footer."
+    },
+    {
+      "rule": "eyebrow-label",
+      "detector": "eyebrow",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 46,
+      "evidence": "✨ New: AI-powered lending <h1",
+      "message": "Small label on its own line above a heading: banned outright.",
+      "instead": "Put necessary context in the heading or supporting text."
+    },
+    {
+      "rule": "hype-copy",
+      "detector": "hype-words",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 46,
+      "evidence": "AI-powered",
+      "message": "\"AI-powered\": say concretely what it does for whom.",
+      "instead": "Write specific, concrete headlines about what the product does for whom."
+    },
+    {
+      "rule": "emoji-headings",
+      "detector": "emoji-heading",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 47,
+      "evidence": "🚀 Unlock your potential with the revolutionary AI-powered tool platform",
+      "message": "Emoji in a heading.",
+      "instead": "Use one consistent icon set, custom illustrations, or none at all."
+    },
+    {
+      "rule": "hype-copy",
+      "detector": "hype-words",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 47,
+      "evidence": "Unlock your potential",
+      "message": "\"Unlock your potential\": say concretely what it does for whom.",
+      "instead": "Write specific, concrete headlines about what the product does for whom."
+    },
+    {
+      "rule": "hype-copy",
+      "detector": "hype-words",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 47,
+      "evidence": "revolutionary",
+      "message": "\"revolutionary\": say concretely what it does for whom.",
+      "instead": "Write specific, concrete headlines about what the product does for whom."
+    },
+    {
+      "rule": "hype-copy",
+      "detector": "hype-words",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 48,
+      "evidence": "seamlessly",
+      "message": "\"seamlessly\": say concretely what it does for whom.",
+      "instead": "Write specific, concrete headlines about what the product does for whom."
+    },
+    {
+      "rule": "hype-copy",
+      "detector": "hype-words",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 48,
+      "evidence": "empowers",
+      "message": "\"empowers\": say concretely what it does for whom.",
+      "instead": "Write specific, concrete headlines about what the product does for whom."
+    },
+    {
+      "rule": "stock-lines",
+      "detector": "stock-line",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 48,
+      "evidence": "Say goodbye to",
+      "message": "\"Say goodbye to\" fits any business: say what this one does, for whom.",
+      "instead": "Say what this business does, for whom, with one fact from the brief."
+    },
+    {
+      "rule": "stock-lines",
+      "detector": "stock-line",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 48,
+      "evidence": "at your fingertips",
+      "message": "\"at your fingertips\" fits any business: say what this one does, for whom.",
+      "instead": "Say what this business does, for whom, with one fact from the brief."
+    },
+    {
+      "rule": "stock-lines",
+      "detector": "stock-line",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 48,
+      "evidence": "in just a few clicks",
+      "message": "\"in just a few clicks\" fits any business: say what this one does, for whom.",
+      "instead": "Say what this business does, for whom, with one fact from the brief."
+    },
+    {
+      "rule": "auto-advancing",
+      "detector": "auto-advance",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 52,
+      "evidence": "class=\"ticker\"",
+      "message": "Carousel, slider or tilt effect: show items whole and let people move them.",
+      "instead": "Show items side by side or stacked, let people move things themselves, and give long loops a pause control."
+    },
+    {
+      "rule": "sparkle-ticker",
+      "detector": "ticker",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 52,
+      "evidence": "✦",
+      "message": "Sparkle-separated phrases: one clear headline instead.",
+      "instead": "Let one clear headline do the work; set a short list in normal case with plain separators."
+    },
+    {
+      "rule": "code-headings",
+      "detector": "code-heading",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 54,
+      "evidence": "// features",
+      "message": "Code comment used as a label above a heading.",
+      "instead": "Write a plain heading. Save code styling for actual code."
+    },
+    {
+      "rule": "eyebrow-label",
+      "detector": "eyebrow",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 54,
+      "evidence": "// features <h2",
+      "message": "Small label on its own line above a heading: banned outright.",
+      "instead": "Put necessary context in the heading or supporting text."
+    },
+    {
+      "rule": "hidden-at-rest",
+      "detector": "hidden-at-rest",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 56,
+      "evidence": "data-aos",
+      "message": "Scroll-reveal attribute: the element starts hidden until a script shows it.",
+      "instead": "Render content visible by default and animate from a visible state, so a failed script never hides the page."
+    },
+    {
+      "rule": "auto-tile-grid",
+      "detector": "icon-tile",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 57,
+      "evidence": "icon-box",
+      "message": "Rounded icon tile stacked above a heading.",
+      "instead": "Only use tiles when the content really comes in tile-sized pieces; let real content determine the layout. Flatten nested cards."
+    },
+    {
+      "rule": "hype-copy",
+      "detector": "hype-words",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 57,
+      "evidence": "Next-generation",
+      "message": "\"Next-generation\": say concretely what it does for whom.",
+      "instead": "Write specific, concrete headlines about what the product does for whom."
+    },
+    {
+      "rule": "hype-copy",
+      "detector": "hype-words",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 57,
+      "evidence": "elevates",
+      "message": "\"elevates\": say concretely what it does for whom.",
+      "instead": "Write specific, concrete headlines about what the product does for whom."
+    },
+    {
+      "rule": "auto-tile-grid",
+      "detector": "icon-tile",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 58,
+      "evidence": "icon-box",
+      "message": "Rounded icon tile stacked above a heading.",
+      "instead": "Only use tiles when the content really comes in tile-sized pieces; let real content determine the layout. Flatten nested cards."
+    },
+    {
+      "rule": "auto-tile-grid",
+      "detector": "icon-tile",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 59,
+      "evidence": "icon-box",
+      "message": "Rounded icon tile stacked above a heading.",
+      "instead": "Only use tiles when the content really comes in tile-sized pieces; let real content determine the layout. Flatten nested cards."
+    },
+    {
+      "rule": "fake-proof",
+      "detector": "fake-proof",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 68,
+      "evidence": "— Sarah J.",
+      "message": "Quote attributed to \"Sarah J.\": use a real, named person with permission, or leave it out.",
+      "instead": "Leave them out until real ones exist, or show real product proof and only real relevant metrics."
+    },
+    {
+      "rule": "fake-logos",
+      "detector": "trusted-by",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 69,
+      "evidence": "Trusted by",
+      "message": "\"Trusted by\" strip: only real clients with official logo files.",
+      "instead": "Only show logos of real clients, using their official files. No clients yet? Leave the strip out."
+    },
+    {
+      "rule": "vague-controls",
+      "detector": "vague-control",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 77,
+      "evidence": "<button>Submit</button>",
+      "message": "\"Submit\" does not say what happens: name the action and its object.",
+      "instead": "Name the action and its object (Save draft, Delete 3 files). Link text should make sense on its own."
+    },
+    {
+      "rule": "build-slogans",
+      "detector": "build-slogan",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 79,
+      "evidence": "Built with React",
+      "message": "\"Built with React\" describes how it was made, not what it does for the reader.",
+      "instead": "Read every line as a customer would. If it describes how the site was made instead of what you do for them, cut it."
+    },
+    {
+      "rule": "build-slogans",
+      "detector": "build-slogan",
+      "severity": "medium",
+      "file": "sloppy.html",
+      "line": 79,
+      "evidence": "Powered by AI",
+      "message": "\"Powered by AI\" describes how it was made, not what it does for the reader.",
+      "instead": "Read every line as a customer would. If it describes how the site was made instead of what you do for them, cut it."
+    },
+    {
+      "rule": "off-scale-values",
+      "detector": "value-sprawl",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 1,
+      "evidence": "17 literal colours outside custom properties",
+      "message": "17 different colours typed by hand outside the tokens: keep a palette as tokens.",
+      "instead": "Keep one radius scale, one type scale and one palette as tokens and use them everywhere. Add a step to a scale on purpose."
+    },
+    {
+      "rule": "large-pills",
+      "detector": "pill",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 17,
+      "evidence": ".cta { border-radius: 9999px }",
+      "message": "Pill-shaped button: use straight or subtly rounded corners unless pills are the deliberate shape language.",
+      "instead": "Reserve pills for small tags; use straight or subtly rounded corners consistently; card radii around 12–16px."
+    },
+    {
+      "rule": "transition-all",
+      "detector": "transition-all",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 17,
+      "evidence": ".cta { transition: all .3s }",
+      "message": "transition: all as a reflex: name the properties that change.",
+      "instead": "Transition only the properties that change."
+    },
+    {
+      "rule": "decorative-glass",
+      "detector": "backdrop-blur",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 24,
+      "evidence": ".card { backdrop-filter: blur(12px) }",
+      "message": "Frosted glass: keep only over rich imagery.",
+      "instead": "Use blur only over rich imagery; otherwise solid surfaces read better."
+    },
+    {
+      "rule": "truncated-cards",
+      "detector": "ellipsis",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 26,
+      "evidence": ".card p { text-overflow: ellipsis }",
+      "message": "Text cut off with \"…\": never cut what people need to read.",
+      "instead": "Write shorter text that fits, or let each card grow to fit its words. Never cut off the part people need to read."
+    },
+    {
+      "rule": "fake-status",
+      "detector": "pulse-status",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 32,
+      "evidence": ".live-dot { animation: pulse 1.4s infinite }",
+      "message": "Pulsing status indicator: keep it only if it shows real, changing live data.",
+      "instead": "Only show a status when it can change and you're showing the real thing. If it's always true, leave it out."
+    },
+    {
+      "rule": "cta-everywhere",
+      "detector": "cta-repeat",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 43,
+      "evidence": "\"get started\" ×5",
+      "message": "The same call to action shown three or more times.",
+      "instead": "Show the main button once in the nav and once in the hero, and at most two buttons in the hero."
+    },
+    {
+      "rule": "em-dashes",
+      "detector": "em-dash",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 48,
+      "evidence": "—",
+      "message": "2 em dashes: use commas, colons, parentheses or a new sentence.",
+      "instead": "Rewrite the sentence with a comma, a colon, brackets or a full stop."
+    },
+    {
+      "rule": "twin-ctas",
+      "detector": "twin-ctas",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 49,
+      "evidence": "\"Get started\" + \"Learn more\"",
+      "message": "Twin buttons: make the second a quiet text link.",
+      "instead": "One clear main button; make the second option a quiet text link."
+    },
+    {
+      "rule": "ing-riders",
+      "detector": "ing-rider",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 57,
+      "evidence": "ensuring a smooth experience",
+      "message": "\", ensuring ...\" claims a meaning the sentence never shows: state the result or stop at the fact.",
+      "instead": "Say the concrete result, or stop at the fact."
+    },
+    {
+      "rule": "puffery",
+      "detector": "puffery",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 58,
+      "evidence": "serves as",
+      "message": "\"serves as\": use is, has or does, or name the thing.",
+      "instead": "Use is, has or does. Name the street or the thing."
+    },
+    {
+      "rule": "ai-iconography",
+      "detector": "sparkles-ai",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 59,
+      "evidence": "class=\"sparkles\"",
+      "message": "Sparkles used as the AI badge: name the capability instead.",
+      "instead": "Pick icons that say something specific to this product, or write the capability in words."
+    },
+    {
+      "rule": "ing-riders",
+      "detector": "ing-rider",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 59,
+      "evidence": "highlighting the tools that matter most to you today",
+      "message": "\", highlighting ...\" claims a meaning the sentence never shows: state the result or stop at the fact.",
+      "instead": "Say the concrete result, or stop at the fact."
+    },
+    {
+      "rule": "virtue-words",
+      "detector": "virtue-word",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 59,
+      "evidence": "genuinely understands",
+      "message": "\"genuinely understands\": show it with a fact rather than announcing it.",
+      "instead": "Show the quality with a fact or an admission. Give the reason instead of saying a choice was a choice."
+    },
+    {
+      "rule": "fake-proof",
+      "detector": "count-up",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 63,
+      "evidence": "class=\"counter",
+      "message": "Numbers that count up on scroll: show the figure plainly, and only if it is real and sourced.",
+      "instead": "Leave them out until real ones exist, or show real product proof and only real relevant metrics."
+    },
+    {
+      "rule": "placeholder-content",
+      "detector": "default-cast",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 69,
+      "evidence": "Northwind",
+      "message": "\"Northwind\" is a stock sample company name: use the real one or leave it out.",
+      "instead": "Before you publish, look through every page for placeholder names, emails and dates, and swap in your own."
+    },
+    {
+      "rule": "fake-discount",
+      "detector": "strikethrough-price",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 73,
+      "evidence": "<s>$",
+      "message": "Struck-through price: show a discount only for a real, time-limited offer.",
+      "instead": "Show the real price plainly; only show a discount badge for a real, time-limited offer."
+    },
+    {
+      "rule": "most-popular",
+      "detector": "most-popular",
+      "severity": "low",
+      "file": "sloppy.html",
+      "line": 73,
+      "evidence": "Most popular",
+      "message": "\"Most popular\": keep only if it is actually the plan most people pick.",
+      "instead": "Lay out the plans evenly; only highlight one when you actually know it's the one most people pick."
+    }
+  ]
+}

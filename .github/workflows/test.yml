@@ -1,0 +1,23 @@
+name: test
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node --test tests/check-slop.test.mjs
+      - name: Clean examples pass
+        run: |
+          node check-slop.mjs examples/landing/clean.html --context web --pairing examples/landing/type-pairing.md --strict
+          node check-slop.mjs examples/dashboard/clean.html --context app --pairing examples/dashboard/type-pairing.md --strict
+          node check-slop.mjs examples/writing/clean.md --context copy --strict
+      - name: RULES.md matches rules.json
+        run: node check-slop.mjs --rules-md | diff -u RULES.md -

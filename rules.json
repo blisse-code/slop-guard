@@ -1,0 +1,1887 @@
+{
+  "version": "2.0.0",
+  "updated": "2026-11-18",
+  "about": "Anti-slop rules for AI-made work, by context. They are design and writing preferences, not a test of who or what made something: judge the result, never guess the author. The rules draw on several sources (see Sources in SKILL.md and NOTICE). 'dont' is the pattern; 'instead' is what to do.",
+  "contexts": {
+    "web": "Websites and landing pages",
+    "app": "App and dashboard UI, HTML prototypes",
+    "deck": "Decks and slides",
+    "doc": "Documents and reports (research write-ups, PDFs, briefs)",
+    "copy": "Social and marketing copy (posts, captions, emails, ads)",
+    "image": "Imagery and illustration (generated or chosen)"
+  },
+  "check_kinds": {
+    "machine": "A static checker can find it in HTML, CSS, Markdown or text (check-slop.mjs). A hit is evidence, not a verdict.",
+    "screenshot": "Needs the rendered result: look at a screenshot at 390, 820 and 1280 px.",
+    "judgement": "Needs a person or a model reviewing against the brief and brand."
+  },
+  "rules": [
+    {
+      "id": "gradient-hero",
+      "dont": "Every hero uses an indigo/violet gradient on a white page. Do not fall back to purple gradients on white backgrounds.",
+      "instead": "Pick a palette from a real reference style and commit to it; use gradients only where they mean something.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "image"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "violet-gradient",
+      "severity": "medium"
+    },
+    {
+      "id": "ai-palette",
+      "dont": "Purple or violet gradients, cyan on dark, or flat neon on dark (the AI colour palette).",
+      "instead": "Use a deliberate, content-led palette; preserve intentional brand styling.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "image"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "violet-gradient",
+      "severity": "medium"
+    },
+    {
+      "id": "one-default-sans",
+      "dont": "One default sans for headings, body and buttons; Inter for the entire interface.",
+      "instead": "Pair a characterful display face with a readable body font; match the type to the brand's mood.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "overused-font",
+      "severity": "low"
+    },
+    {
+      "id": "overused-font",
+      "dont": "Defaulting to Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans or Space Grotesk.",
+      "instead": "Choose fonts to suit the brand, not by default. A project or brand font chosen on purpose is fine: record why.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "overused-font",
+      "severity": "low"
+    },
+    {
+      "id": "default-headline-font",
+      "dont": "Impact, Arial Black or a standard system sans for headlines.",
+      "instead": "Choose a deliberate headline font that fits the brand.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "default-headline-font",
+      "severity": "medium"
+    },
+    {
+      "id": "five-block-landing",
+      "dont": "The same five-block landing page for every product: a \"new\" badge, a centred hero, feature cards, a stats band, pricing, logos, an FAQ and a big footer, in that order. (Flag it when three or more of these appear together.)",
+      "instead": "Design around the content: editorial spreads, bento grids, a single bold statement, a product demo.",
+      "contexts": [
+        "web"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "emoji-headings",
+      "dont": "🚀 ✨ 💡 sprinkled in headings and feature lists; emoji as interface icons.",
+      "instead": "Use one consistent icon set, custom illustrations, or none at all.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "emoji-heading",
+      "severity": "medium"
+    },
+    {
+      "id": "uniform-radius-shadow",
+      "dont": "Identical large radius and soft shadow on every card and button; hairline border plus a wide soft shadow across a row of cards.",
+      "instead": "Choose a shape language deliberately: sharp, pill, or mixed, and apply it with intent. Use restrained elevation or borders.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "decorative-glass",
+      "dont": "Frosted glass panels over plain backgrounds where nothing shows through.",
+      "instead": "Use blur only over rich imagery; otherwise solid surfaces read better.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "backdrop-blur",
+      "severity": "low"
+    },
+    {
+      "id": "hype-copy",
+      "dont": "\"Unlock your potential with our revolutionary AI-powered platform.\" Plus the usual suspects: elevate, seamless, supercharge, unleash, empower, next-generation, and \"Welcome back, Sam ✨\" on every screen.",
+      "instead": "Write specific, concrete headlines about what the product does for whom.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "hype-words",
+      "severity": "medium"
+    },
+    {
+      "id": "centered-narrow",
+      "dont": "Every section is centered text in a narrow column; an off-white background with everything centered.",
+      "instead": "Use left-aligned text, asymmetric grids, and varied section layouts.",
+      "contexts": [
+        "web",
+        "deck"
+      ],
+      "check": [
+        "screenshot"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "fake-proof",
+      "dont": "\"10,000+ happy customers\" and stock-photo quotes from Jane D.; a decorative big-number hero metric.",
+      "instead": "Leave them out until real ones exist, or show real product proof and only real relevant metrics.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "fake-proof",
+      "severity": "high"
+    },
+    {
+      "id": "low-contrast",
+      "dont": "Light gray body text on white; text too faint to pass contrast; gray text on a colored background.",
+      "instead": "Meet WCAG AA (4.5:1 body, 3:1 large text); let hierarchy come from size and weight, not faded color. Tint secondary text from the background hue.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "low-contrast",
+      "severity": "high"
+    },
+    {
+      "id": "gradient-text",
+      "dont": "bg-clip-text gradients on all headings; gradient fill on text, especially headings and numbers.",
+      "instead": "Reserve special treatments for one hero moment.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "gradient-text",
+      "severity": "medium"
+    },
+    {
+      "id": "floating-3d-shapes",
+      "dont": "Floating abstract 3D shapes with no relation to the product; a big illustration built from basic shapes.",
+      "instead": "Show the actual product, real photography, or purpose-made illustration.",
+      "contexts": [
+        "web",
+        "deck",
+        "image"
+      ],
+      "check": [
+        "judgement",
+        "screenshot"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "same-gap",
+      "dont": "Uniform padding makes every section feel equally important; the same spacing everywhere.",
+      "instead": "Use rhythm: tight groups, generous breaks, and deliberate density changes.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "screenshot"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "framework-defaults",
+      "dont": "Slate gray, default radius, default buttons.",
+      "instead": "Retheme tokens: colors, fonts, radius, borders, to match a chosen style.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "framework-defaults",
+      "severity": "low"
+    },
+    {
+      "id": "stock-icons",
+      "dont": "The same thin-line icon library every AI-built site uses, straight out of the box; mixed icon styles.",
+      "instead": "Pick an icon style that suits the brand, or customize stroke weight and corners. Use one cohesive set.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "twin-ctas",
+      "dont": "\"Get started\" and \"Learn more\" side by side, same size, same weight.",
+      "instead": "One clear main button; make the second option a quiet text link.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "twin-ctas",
+      "severity": "low"
+    },
+    {
+      "id": "auto-tile-grid",
+      "dont": "A grid of rounded tiles as the automatic second section; identical card rows; cards inside cards; an icon in a box above every heading.",
+      "instead": "Only use tiles when the content really comes in tile-sized pieces; let real content determine the layout. Flatten nested cards.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "hairline-headline",
+      "dont": "Huge but hairline-thin headline text, sometimes faded to low opacity.",
+      "instead": "Give the headline enough weight and contrast to carry the page.",
+      "contexts": [
+        "web",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "thin-headline",
+      "severity": "medium"
+    },
+    {
+      "id": "gradient-button",
+      "dont": "Buttons filled with a two-tone gradient.",
+      "instead": "Solid buttons in the brand color; save gradients for one deliberate moment, if any.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "gradient-button",
+      "severity": "medium"
+    },
+    {
+      "id": "stock-faces",
+      "dont": "Flawless smiling faces that could belong to any company.",
+      "instead": "Real photos of real people, or no people at all.",
+      "contexts": [
+        "web",
+        "deck",
+        "image"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "fake-discount",
+      "dont": "A struck-through price next to a loud discount badge that sits on the pricing card forever.",
+      "instead": "Show the real price plainly; only show a discount badge for a real, time-limited offer.",
+      "contexts": [
+        "web"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "strikethrough-price",
+      "severity": "medium"
+    },
+    {
+      "id": "sparkle-ticker",
+      "dont": "A row of shouty all-caps phrases separated by ✦ sparkles, often running as a strip or ticker; text that scrolls by itself.",
+      "instead": "Let one clear headline do the work; set a short list in normal case with plain separators.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "ticker",
+      "severity": "medium"
+    },
+    {
+      "id": "most-popular",
+      "dont": "Three pricing cards with the middle one raised, highlighted and tagged \"Most popular\" by default.",
+      "instead": "Lay out the plans evenly; only highlight one when you actually know it's the one most people pick.",
+      "contexts": [
+        "web"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "most-popular",
+      "severity": "low"
+    },
+    {
+      "id": "floating-widgets",
+      "dont": "A newsletter pop-up, a chat bubble, a back-to-top button and a floating badge all following you down the page.",
+      "instead": "Keep only the navigation fixed (plus one action bar on phones); put the newsletter signup in the footer.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "floating-widgets",
+      "severity": "medium"
+    },
+    {
+      "id": "placeholder-labels",
+      "dont": "Form fields where the only hint is grey text inside the box, which disappears as soon as you start typing.",
+      "instead": "Give every field a visible label above it that stays put, like \"Email\" or \"Arrival date\".",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "placeholder-label",
+      "severity": "high"
+    },
+    {
+      "id": "cta-everywhere",
+      "dont": "\"Book a call\" in the nav, twice in the hero and again in a banner, all visible at once.",
+      "instead": "Show the main button once in the nav and once in the hero, and at most two buttons in the hero.",
+      "contexts": [
+        "web"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "cta-repeat",
+      "severity": "low"
+    },
+    {
+      "id": "fake-logos",
+      "dont": "A \"Trusted by\" strip of logos the AI drew itself: wobbly look-alikes of real brands, or companies that don't exist.",
+      "instead": "Only show logos of real clients, using their official files. No clients yet? Leave the strip out.",
+      "contexts": [
+        "web",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "trusted-by",
+      "severity": "high"
+    },
+    {
+      "id": "truncated-cards",
+      "dont": "Every card's description chopped off mid-sentence with \"…\" so all the cards line up.",
+      "instead": "Write shorter text that fits, or let each card grow to fit its words. Never cut off the part people need to read.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "ellipsis",
+      "severity": "low"
+    },
+    {
+      "id": "placeholder-content",
+      "dont": "\"Acme Inc\", \"Jane Doe\", \"you@example.com\" and a copyright year that's long gone, still sitting on the live site.",
+      "instead": "Before you publish, look through every page for placeholder names, emails and dates, and swap in your own.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "placeholders",
+      "severity": "high"
+    },
+    {
+      "id": "felt-tip-colours",
+      "dont": "Every card, icon and badge gets its own bright color, so no color means anything.",
+      "instead": "Pick one main color, one supporting color and one accent, and use them roughly 60/30/10. Give the accent a job, like the main button.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "image"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "fake-status",
+      "dont": "Pulsing \"Active\", \"Live\" or \"Verified\" chips that never change, or that nothing actually checks; a pulsing live dot that isn't showing live data.",
+      "instead": "Only show a status when it can change and you're showing the real thing. If it's always true, leave it out.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "pulse-status",
+      "severity": "medium"
+    },
+    {
+      "id": "misaligned-icons",
+      "dont": "Icons, bullets and list text sitting a few pixels off each other.",
+      "instead": "Line every icon up with the middle of its first line of text, and keep the same gap between icon and text on every row.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "screenshot"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "code-headings",
+      "dont": "\"// features\" or \"/* about us */\" above the headings of a site that has nothing to do with code; decorative monospace.",
+      "instead": "Write a plain heading. Save code styling for actual code.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "code-heading",
+      "severity": "medium"
+    },
+    {
+      "id": "build-slogans",
+      "dont": "\"Built with React and Tailwind\", \"Powered by AI\" or a slogan like \"one campus. one app.\": words that came from the chat that built the site, not from the business.",
+      "instead": "Read every line as a customer would. If it describes how the site was made instead of what you do for them, cut it.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "build-slogan",
+      "severity": "medium"
+    },
+    {
+      "id": "large-pills",
+      "dont": "Large elements made pill-shaped; pill-shaped buttons.",
+      "instead": "Reserve pills for small tags; use straight or subtly rounded corners consistently; card radii around 12–16px.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "pill",
+      "severity": "low"
+    },
+    {
+      "id": "filler-charts",
+      "dont": "Meaningless sparklines, progress rings or soft rounded boxes filling empty space.",
+      "instead": "Show real content or leave useful breathing room.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "fake-texture",
+      "dont": "Fake hand-drawn doodles or fake grain as generic decoration; decorative repeating stripes; blob or torn-edge image shapes; photos in arbitrary shape cut-outs.",
+      "instead": "Use genuine source imagery or purpose-made artwork and clean crops.",
+      "contexts": [
+        "web",
+        "deck",
+        "image"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "stripes",
+      "severity": "low"
+    },
+    {
+      "id": "unmotivated-mode",
+      "dont": "Light or dark mode chosen just because the category usually does; warm cream by default.",
+      "instead": "Choose the viewing mode and background for the audience, content and environment.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "cream-background",
+      "severity": "low"
+    },
+    {
+      "id": "scattered-motion",
+      "dont": "The same fade-in everywhere; bouncy or elastic animation; a blinking cursor with nothing to type.",
+      "instead": "Choose one deliberate motion moment and respect reduced-motion preferences.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "bouncy-motion",
+      "severity": "low"
+    },
+    {
+      "id": "flat-type-scale",
+      "dont": "Headings barely bigger than the text (within 1.25× at every step).",
+      "instead": "Give heading levels a clear size and weight hierarchy.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "type-scale",
+      "severity": "low"
+    },
+    {
+      "id": "eyebrow-label",
+      "dont": "A small, spaced-out uppercase label on its own line above a heading, or a small pill above the headline. Banned outright.",
+      "instead": "Put necessary context in the heading or supporting text.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "eyebrow",
+      "severity": "medium"
+    },
+    {
+      "id": "section-numbers",
+      "dont": "Small numbers beside repeated section headings.",
+      "instead": "Use a deliberate, content-led alternative.",
+      "contexts": [
+        "web",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "numbered-headings",
+      "severity": "low"
+    },
+    {
+      "id": "glow",
+      "dont": "Colored glow shadows, a colored radial haze over a dark page, or a glow behind the hero.",
+      "instead": "Use restrained elevation or borders; no colored glow.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "glow",
+      "severity": "medium"
+    },
+    {
+      "id": "side-stripe",
+      "dont": "A thick colored border down one side of a card, or a thick accent border on a rounded card.",
+      "instead": "Use a deliberate, content-led alternative (a heading, an icon with a label, position).",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "side-stripe",
+      "severity": "medium"
+    },
+    {
+      "id": "offset-shadow",
+      "dont": "A chunky sharp shadow offset 4px or more (unless the whole design is deliberately neobrutalist).",
+      "instead": "Use restrained elevation or borders.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "offset-shadow",
+      "severity": "low"
+    },
+    {
+      "id": "layout-defects",
+      "dont": "Cards cut off at the screen edge, text hidden behind things, a lopsided first screen, text crammed against a box edge or the screen side, text spilling out of its box, headings floating between sections, lopsided headlines and one word alone on a last line.",
+      "instead": "Give text 12–16px of breathing room; let headings sit closer to what follows; balance the first screen.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "screenshot"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "reading-defects",
+      "dont": "Lines longer than about 80 characters; line spacing below 1.3; justified text full of gaps; paragraphs in capitals; letters spaced too far apart or squashed together; the same words three or more times in one card.",
+      "instead": "Aim for 65–75 characters per line and body line height of at least 1.3; normal case and tracking for body text.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "reading",
+      "severity": "medium"
+    },
+    {
+      "id": "heading-order",
+      "dont": "Heading levels that jump, like H1 straight to H3.",
+      "instead": "Keep semantic heading levels consecutive.",
+      "contexts": [
+        "web",
+        "app",
+        "doc"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "heading-order",
+      "severity": "medium"
+    },
+    {
+      "id": "tiny-text",
+      "dont": "Body text under 12px; buttons, links, menus or labels under 11px.",
+      "instead": "Use 16px body where practical, never below 12px; controls and labels at least 11px.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "tiny-text",
+      "severity": "high"
+    },
+    {
+      "id": "orange-arrows",
+      "dont": "Orange arrows.",
+      "instead": "Use a restrained, consistent navigation icon treatment that fits the brand.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "type-mix-structure",
+      "dont": "Two near-identical fonts (same letter structure) for headings and body. They look like a mistake.",
+      "instead": "Mix the structure: serif with sans, or a slab or mono with a plain sans. Contrast the letter structure, weight, width and size, and personality: one loud, one quiet.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "type-vary-weight-width-size",
+      "dont": "Headline and body in the same weight, width and size range, so the page goes flat.",
+      "instead": "Vary weight, width and size: a heavy, wide or condensed headline over a regular body.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "type-same-weight",
+      "severity": "low"
+    },
+    {
+      "id": "type-match-proportions",
+      "dont": "A pair whose lowercase height and width clash (a tiny x-height next to a big one).",
+      "instead": "Complement on proportions: similar x-height and width. Match the construction too: geometric with geometric, humanist with humanist.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "type-match-mood",
+      "dont": "A pair from clashing moods or eras, or one formal face with one relaxed one.",
+      "instead": "Match the mood and era, and the tone: both formal or both relaxed.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "type-one-personality",
+      "dont": "The expressive display face used for paragraphs, forms or buttons.",
+      "instead": "One personality, one workhorse: the expressive font only for headings and short labels; the quiet one for paragraphs, forms and buttons.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "type-display-on-body",
+      "severity": "medium"
+    },
+    {
+      "id": "type-every-font-a-job",
+      "dont": "More than three font families, or a family with no clear role.",
+      "instead": "Give every font a job: headings, body, small labels. Two families are usually enough; three is the limit.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "type-families",
+      "severity": "high"
+    },
+    {
+      "id": "type-tokens",
+      "dont": "Font families typed as literals in components, with no heading and body tokens.",
+      "instead": "Use free Google Fonts and set a heading (display) token and a body token, then use the tokens everywhere.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "type-tokens",
+      "severity": "medium"
+    },
+    {
+      "id": "type-banned-defaults",
+      "dont": "Defaulting to Inter, Roboto, Poppins or Space Grotesk.",
+      "instead": "Choose the pairing for the brand under these rules. A default is only acceptable when the brand already mandates it, recorded in the pairing record.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "overused-font",
+      "severity": "medium"
+    },
+    {
+      "id": "type-heading-body-step",
+      "dont": "Headings less than 1.25× the body size.",
+      "instead": "Keep a clear step: every heading level at least 1.25× the level below, and the main heading well above body.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "type-scale",
+      "severity": "medium"
+    },
+    {
+      "id": "type-pairing-record",
+      "dont": "Starting to build before a type pairing has been chosen and written down.",
+      "instead": "Before building, record the pairing: the display token and family, the body token and family, and why they pair under these rules (structure, weight/width/size, proportions, mood, one loud and one quiet). Format: a \"Type pairing\" section with Display:, Body: and Why: lines.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "pairing-record",
+      "severity": "high"
+    },
+    {
+      "id": "decorative-shortcuts",
+      "dont": "Keyboard-shortcut chips (⌘K) for shortcuts that do not exist, and middle dots used to fake a layout.",
+      "instead": "Show a shortcut only if it works; use spacing or a second line instead of dots.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "shortcut-hint",
+      "severity": "low"
+    },
+    {
+      "id": "ai-iconography",
+      "dont": "Stock icon meanings: a lightning bolt for speed, a shield for security, sparkles for anything AI.",
+      "instead": "Pick icons that say something specific to this product, or write the capability in words.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "sparkles-ai",
+      "severity": "low"
+    },
+    {
+      "id": "grid-texture",
+      "dont": "Dot or graph-paper backgrounds used to look \"technical\", and glowing orbs standing in for a mascot.",
+      "instead": "Use a background that belongs to the brand, or a plain one. Draw a real mark or drop the orb.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "image"
+      ],
+      "check": [
+        "machine",
+        "screenshot"
+      ],
+      "detector": "grid-background",
+      "severity": "low"
+    },
+    {
+      "id": "transition-all",
+      "dont": "transition: all as a reflex.",
+      "instead": "Transition only the properties that change.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "transition-all",
+      "severity": "low"
+    },
+    {
+      "id": "borrowed-language",
+      "dont": "A UI that looks like a famous product's design system, or one AI tool's default look traded for another's.",
+      "instead": "Build the look from this brand and its audience, and finish the choices the component kit left open.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "casing-and-formula",
+      "dont": "Mixed casing (Title Case buttons beside sentence-case headings) and formula headlines: two clipped orders in a row (\"Ship faster. Build smarter.\") or matched number pairs (\"Four projects, four problems\").",
+      "instead": "Choose one casing (sentence case by default) and keep it. Write each heading as a plain statement of what follows.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "verb-pair",
+      "severity": "low"
+    },
+    {
+      "id": "browser-surfaces",
+      "dont": "Text selection, caret, scrollbars, focus rings, underline offset and tabular numerals left on browser defaults.",
+      "instead": "Theme them from the palette: the cheapest sign a page was built rather than assembled.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "screenshot"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "display-type-limits",
+      "dont": "An italic serif hero headline by default, a full-sentence headline at display size, or tracking crushed past -0.04em.",
+      "instead": "Display type at most about 6rem, tracking no tighter than -0.04em, balanced heading wraps (text-wrap: balance; pretty for body).",
+      "contexts": [
+        "web",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "display-type",
+      "severity": "low"
+    },
+    {
+      "id": "broken-images",
+      "dont": "Images with an empty, missing or placeholder source.",
+      "instead": "Use real images or leave the slot out.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "broken-image",
+      "severity": "high"
+    },
+    {
+      "id": "needless-modal",
+      "dont": "A modal for a task that needs neither interruption nor protected focus.",
+      "instead": "Keep the task in the page flow.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "em-dashes",
+      "dont": "Em dashes used to join clauses, or a spaced hyphen swapped in to get round the rule.",
+      "instead": "Rewrite the sentence with a comma, a colon, brackets or a full stop.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "em-dash",
+      "severity": "low"
+    },
+    {
+      "id": "staged-reveals",
+      "dont": "Copy that stages a reveal instead of saying the thing: a denial followed by the \"real\" point, a question answered in the next breath, a line that promises a secret, a run of short negatives ending in \"just\", or calling something \"theater\".",
+      "instead": "Put the point first, in one plain sentence.",
+      "contexts": [
+        "doc",
+        "copy",
+        "deck",
+        "web"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "staged-copy",
+      "severity": "medium"
+    },
+    {
+      "id": "engagement-bait",
+      "dont": "Ending by asking for replies, opening by praising the question, piles of hashtags, and \"thread\" openers.",
+      "instead": "Stop on the last useful point and answer the substance. Two hashtags at most.",
+      "contexts": [
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "engagement-bait",
+      "severity": "medium"
+    },
+    {
+      "id": "decorative-headings",
+      "dont": "Headings that could sit over any section (\"Final thoughts\", \"Conclusion\"), headings phrased as questions, and bullets that open with a bolded label.",
+      "instead": "Write each heading as what the section shows. Write bullets as plain sentences.",
+      "contexts": [
+        "doc",
+        "deck",
+        "web",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "decorative-heading",
+      "severity": "low"
+    },
+    {
+      "id": "ai-filler-words",
+      "dont": "Filler words that sound weighty and say nothing: delve, tapestry, testament, multifaceted, pivotal, realm, and \"landscape\" used as a metaphor.",
+      "instead": "Say the concrete thing. For long prose, also run a full writing linter.",
+      "contexts": [
+        "doc",
+        "copy",
+        "deck",
+        "web"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "filler-words",
+      "severity": "low"
+    },
+    {
+      "id": "writing-structure",
+      "dont": "Prose on autopilot: lists of three by habit, every sentence the same length, a run of clipped statements, hedging both ways, a new synonym for the same thing each time, and a sweeping last line.",
+      "instead": "Vary the rhythm, take a position, keep one word for one thing, and stop on the last concrete point.",
+      "contexts": [
+        "doc",
+        "copy",
+        "deck"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "missing-states",
+      "dont": "Only the resting state was designed: no hover, focus, pressed, disabled, loading, error or empty state.",
+      "instead": "Design every state a control or view can be in, and look at each one rendered.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "vague-controls",
+      "dont": "Buttons and links that do not say what happens: OK, Submit, Yes, No, Click here, Read more.",
+      "instead": "Name the action and its object (Save draft, Delete 3 files). Link text should make sense on its own.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "vague-control",
+      "severity": "medium"
+    },
+    {
+      "id": "unnamed-controls",
+      "dont": "Icon-only buttons and links with no name a screen reader can say, and images with no alt attribute.",
+      "instead": "Give every control a visible label or an aria-label, and every image an alt (empty for pure decoration).",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "unnamed-control",
+      "severity": "high"
+    },
+    {
+      "id": "focus-removed",
+      "dont": "Focus outlines switched off (outline: none) with nothing in their place, or tabindex above 0 scrambling the Tab order.",
+      "instead": "Keep a visible focus ring, styled from the palette. Use tabindex 0 or -1 only.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "focus-removed",
+      "severity": "high"
+    },
+    {
+      "id": "honest-feedback",
+      "dont": "Errors that show a raw code or blame the person, spinners with no words, and progress bars that move whether or not work is happening.",
+      "instead": "Errors say what went wrong and how to fix it. Loading text names the real task. Show real progress or none.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "judgement",
+        "screenshot"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "reflex-affordances",
+      "dont": "Affordances added by habit: chevrons on rows that go nowhere, a green tick on every list item, every card lifting on hover, an icon beside every menu label.",
+      "instead": "Keep each one only where it means something: a chevron that opens, a tick in a real comparison, a lift on cards you can click.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "judgement",
+        "screenshot"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "arrow-every-cta",
+      "dont": "An arrow after the words of every button and link.",
+      "instead": "Keep one arrow for the main action, or none.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "arrow-cta",
+      "severity": "low"
+    },
+    {
+      "id": "reduced-motion",
+      "dont": "Animation and transitions with no reduced-motion fallback.",
+      "instead": "Put non-essential motion inside @media (prefers-reduced-motion: no-preference), or turn it off under reduce.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "no-reduced-motion",
+      "severity": "medium"
+    },
+    {
+      "id": "hidden-at-rest",
+      "dont": "Content that starts invisible (opacity 0 or pushed off screen) and only appears when a script or scroll reveal runs.",
+      "instead": "Render content visible by default and animate from a visible state, so a failed script never hides the page.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "hidden-at-rest",
+      "severity": "medium"
+    },
+    {
+      "id": "layout-animation",
+      "dont": "Animating width, height, top, left, margin or padding.",
+      "instead": "Animate transform and opacity instead, and keep the layout still.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "layout-animation",
+      "severity": "low"
+    },
+    {
+      "id": "auto-advancing",
+      "dont": "Carousels, timed tabs, cards that tilt under the pointer, and loops that run past five seconds with no pause button.",
+      "instead": "Show items side by side or stacked, let people move things themselves, and give long loops a pause control.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "auto-advance",
+      "severity": "medium"
+    },
+    {
+      "id": "scroll-hijack",
+      "dont": "Scroll-jacking, smooth-scroll libraries, whole-page scroll snapping and parallax on text.",
+      "instead": "Let the page scroll natively. If scroll-linked motion is the idea, keep it inside one section and record why.",
+      "contexts": [
+        "web"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "scroll-hijack",
+      "severity": "low"
+    },
+    {
+      "id": "mono-costume",
+      "dont": "Monospace type as a \"technical\" costume for headings or running text.",
+      "instead": "Keep monospace for code, data and measurements. Set prose and headings in the chosen display and body faces.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "mono-text",
+      "severity": "low"
+    },
+    {
+      "id": "off-scale-values",
+      "dont": "A new radius, font size or colour for each component: values typed by hand instead of taken from a scale.",
+      "instead": "Keep one radius scale, one type scale and one palette as tokens and use them everywhere. Add a step to a scale on purpose.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "value-sprawl",
+      "severity": "low"
+    },
+    {
+      "id": "marker-highlights",
+      "dont": "Highlighter marks or coloured bars behind words, and colour sprinkled inside headlines.",
+      "instead": "Show emphasis with weight, size or position. Use colour inside a word once a page at most.",
+      "contexts": [
+        "web",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "marker-highlight",
+      "severity": "low"
+    },
+    {
+      "id": "pure-black",
+      "dont": "Pure #000 text on light pages.",
+      "instead": "Use a near-black ink tinted toward the palette.",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "pure-black",
+      "severity": "low"
+    },
+    {
+      "id": "inverted-dark",
+      "dont": "A dark mode made by flipping the light theme: flat surfaces, lost elevation, colours that buzz.",
+      "instead": "Design dark surfaces, elevation and contrast on their own terms, and check both themes.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "screenshot",
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "text-in-images",
+      "dont": "Words baked into a picture: headlines, labels or charts saved as images.",
+      "instead": "Set every word as live text, so it can be read aloud, translated, zoomed and searched.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "judgement",
+        "screenshot"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "page-basics",
+      "dont": "A page shipped without a language, a title, a viewport tag, a description or a share image.",
+      "instead": "Set <html lang>, <title>, the viewport meta, a meta description, a favicon and og:image before calling it done.",
+      "contexts": [
+        "web"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "page-basics",
+      "severity": "medium"
+    },
+    {
+      "id": "runtime-errors",
+      "dont": "Console errors on load, or a script that fails and leaves part of the page dead.",
+      "instead": "Open the page with the console showing and fix every error before review.",
+      "contexts": [
+        "web",
+        "app"
+      ],
+      "check": [
+        "screenshot"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "subject-not-shown",
+      "dont": "A page that never shows the actual product, place or work: mood stock, a generic dashboard or a chat mock stands in for it.",
+      "instead": "Show the real thing at a readable size: the product's own screens, real photographs, or stand-ins listed for replacement.",
+      "contexts": [
+        "web",
+        "deck",
+        "image"
+      ],
+      "check": [
+        "judgement",
+        "screenshot"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "image-captions",
+      "dont": "A caption under every picture that explains or apologises for it.",
+      "instead": "Let the picture speak and put credits in one line at the end. Figures in reports keep their numbered captions.",
+      "contexts": [
+        "web"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "invented-specifics",
+      "dont": "Details made up to sound real: a room number, a batch code, '38% fewer re-runs', a founding story, opening hours or prices nobody supplied.",
+      "instead": "Use only details from the brief or a named source. Mark anything assumed and list it for the client.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "high"
+    },
+    {
+      "id": "house-voice",
+      "dont": "The same voice for every client: warm, wry and a little literary, a dry one-liner closing each paragraph, a sign-off line in the footer, the brand name stretched into a running metaphor.",
+      "instead": "Choose a register for this client and reader, end paragraphs on information, and keep jokes for the small print.",
+      "contexts": [
+        "web",
+        "deck",
+        "copy"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "medium"
+    },
+    {
+      "id": "stock-lines",
+      "dont": "Template lines that fit any business: \"Say goodbye to\", \"Look no further\", \"Join thousands of\", \"Imagine a world where\", \"X made simple\", \"at your fingertips\", \"in just a few clicks\".",
+      "instead": "Say what this business does, for whom, with one fact from the brief.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "stock-line",
+      "severity": "medium"
+    },
+    {
+      "id": "puffery",
+      "dont": "Inflated phrasing where a plain verb would do: \"serves as\", \"stands as\", \"plays a key role\", \"in the heart of\", \"where X meets Y\", \"the world of\".",
+      "instead": "Use is, has or does. Name the street or the thing.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "puffery",
+      "severity": "low"
+    },
+    {
+      "id": "ing-riders",
+      "dont": "An -ing clause tacked onto a fact to claim a meaning the text never shows (\", ensuring a smooth start\", \", highlighting our focus\").",
+      "instead": "Say the concrete result, or stop at the fact.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "ing-rider",
+      "severity": "low"
+    },
+    {
+      "id": "process-talk",
+      "dont": "Copy that talks about itself: \"This section shows\", \"Below, you'll find\", \"Here are 5 reasons\", or a colon set up as a reveal (\"One thing changed:\").",
+      "instead": "Give the content. Let the headings carry the structure.",
+      "contexts": [
+        "web",
+        "deck",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "process-talk",
+      "severity": "low"
+    },
+    {
+      "id": "virtue-words",
+      "dont": "Copy that calls itself honest, genuine or thoughtful, or announces its own frankness (\"To be honest\", \"Let me be direct\", \"This is deliberate\").",
+      "instead": "Show the quality with a fact or an admission. Give the reason instead of saying a choice was a choice.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "virtue-word",
+      "severity": "low"
+    },
+    {
+      "id": "exclamations",
+      "dont": "Exclamation marks in body copy.",
+      "instead": "Let the words carry the energy. One exclamation mark in a long piece at most.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "exclaim",
+      "severity": "low"
+    },
+    {
+      "id": "wordy-phrases",
+      "dont": "Long stand-ins for short words: \"has the ability to\", \"due to the fact that\", \"at this point in time\", \"for the purpose of\", \"a large number of\".",
+      "instead": "Use the short form: can, because, now, to, many.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "wordy",
+      "severity": "low"
+    },
+    {
+      "id": "hedge-stacks",
+      "dont": "Hedge on hedge (\"arguably\", \"to some extent\", \"in many ways\", \"somewhat\", \"perhaps\") until no claim is left.",
+      "instead": "Commit where the evidence is solid. Keep one plain qualifier where you really are unsure.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "hedge",
+      "severity": "low"
+    },
+    {
+      "id": "vague-authority",
+      "dont": "Claims resting on nameless authority: \"studies show\", \"experts agree\", \"research suggests\", \"it is widely believed\".",
+      "instead": "Name the study, person or dataset and its date, or drop the claim.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "vague-authority",
+      "severity": "medium"
+    },
+    {
+      "id": "stock-transitions",
+      "dont": "Sentences that open on stock connectors: Moreover, Furthermore, Additionally, Notably, Ultimately, Overall.",
+      "instead": "Let the logic join the sentences. Most of these words can go.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "stock-transition",
+      "severity": "low"
+    },
+    {
+      "id": "canned-courtesies",
+      "dont": "Ready-made openers and sign-offs: \"Certainly!\", \"I hope this finds you well\", \"I hope this helps\", \"Do not hesitate to reach out\".",
+      "instead": "Open with the point and close with the next step, or with nothing.",
+      "contexts": [
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "canned-courtesy",
+      "severity": "medium"
+    },
+    {
+      "id": "echo-openers",
+      "dont": "Three or more sentences in a row that start with the same words, for a drumroll.",
+      "instead": "Say it once and let the content build.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "echo-openers",
+      "severity": "low"
+    },
+    {
+      "id": "bullet-overuse",
+      "dont": "Long runs of bullets (eight or more in a row), and bullets for what is really one sentence.",
+      "instead": "Write prose where the ideas connect. Keep lists short and let items differ in length.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "bullet-run",
+      "severity": "low"
+    },
+    {
+      "id": "title-case-headings",
+      "dont": "Every Heading Set In Title Case By Default.",
+      "instead": "Use sentence case for headings unless the brand's style guide says otherwise.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "title-case",
+      "severity": "low"
+    },
+    {
+      "id": "throat-clearing",
+      "dont": "An opening paragraph of scene-setting before anything is said.",
+      "instead": "Start with the news. If the second paragraph works as the opener, cut the first.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    },
+    {
+      "id": "unclear-references",
+      "dont": "Sentences that point back with a bare 'this' or 'that' at a whole earlier idea, things that act like people ('the data tells a story'), and passive voice that hides who acted.",
+      "instead": "Name the noun, and name the person or team who did it.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "judgement"
+      ],
+      "severity": "low"
+    }
+  ],
+  "done_checklist": [
+    {
+      "id": "phone",
+      "check": "On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).",
+      "contexts": [
+        "web",
+        "app",
+        "deck"
+      ]
+    },
+    {
+      "id": "five-seconds",
+      "check": "At first glance: someone can tell what the page is for and what to click within five seconds.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ]
+    },
+    {
+      "id": "colour",
+      "check": "Colour: nothing relies on colour alone to make sense, so it still works in grayscale. Text is readable against its background (at least 4.5:1), including text on photos and coloured buttons.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "image"
+      ]
+    },
+    {
+      "id": "empty-error",
+      "check": "Empty and error moments: a failed form shows a clear message and keeps what was typed, and anything that can be empty shows something useful instead of a blank space.",
+      "contexts": [
+        "web",
+        "app"
+      ]
+    },
+    {
+      "id": "keyboard",
+      "check": "Keyboard: every button and link can be reached with Tab, and you can see which one is selected.",
+      "contexts": [
+        "web",
+        "app"
+      ]
+    },
+    {
+      "id": "report",
+      "check": "Then say what you checked and what you couldn't check.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy",
+        "image"
+      ]
+    }
+  ]
+}

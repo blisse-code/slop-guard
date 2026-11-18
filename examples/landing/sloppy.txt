@@ -1,0 +1,138 @@
+HIGH   tiny-text            sloppy.html:30  Text at 10px: below the 11px floor for any label or control.
+       .stats small { font-size: 10px }
+HIGH   placeholder-content  sloppy.html:69  Placeholder content "Acme Inc".
+       Acme Inc
+HIGH   placeholder-labels   sloppy.html:77  Field whose only label is its placeholder.
+       <input type="email" placeholder="you@example.com">
+HIGH   placeholder-content  sloppy.html:79  Copyright year 2023 is out of date.
+       © 2023
+MEDIUM page-basics          sloppy.html:1  The page has no viewport, description, og:image, favicon.
+       missing: viewport, description, og:image, favicon
+MEDIUM type-tokens          sloppy.html:1  Set a heading (display) font token and a body font token, e.g. --font-display and --font-body, and use them everywhere.
+       heading token: none; body token: none
+MEDIUM reduced-motion       sloppy.html:1  Animation with no prefers-reduced-motion fallback anywhere in the project.
+       @keyframes marquee
+MEDIUM gradient-hero        sloppy.html:9  Indigo/violet gradient: the default AI palette.
+       body { background: radial-gradient(circle at 50% 0, rgba(124,58,237,.45), transparent 60%), #0b0b12 }
+MEDIUM glow                 sloppy.html:9  Coloured radial haze over the page.
+       body { background: radial-gradient(circle at 50% 0, rgba(124,58,237,.45), transparent 60%), #0b0b12 }
+MEDIUM type-banned-defaults sloppy.html:9  inter is a banned default: choose a pairing under the type rules, or record why the brand mandates it.
+       body { font-family: Inter, sans-serif }
+MEDIUM eyebrow-label        sloppy.html:13  Small spaced-out uppercase label: banned outright above headings.
+       .eyebrow { text-transform: uppercase; letter-spacing: .25em }
+MEDIUM hairline-headline    sloppy.html:14  Hairline-thin headline.
+       .hero h1 { font-weight: 100 }
+MEDIUM gradient-text        sloppy.html:15  Gradient fill on text.
+       .gradient-title { background-clip: text }
+MEDIUM gradient-hero        sloppy.html:15  Indigo/violet gradient: the default AI palette.
+       .gradient-title { background: linear-gradient(90deg, #22d3ee, #a855f7) }
+MEDIUM gradient-hero        sloppy.html:17  Indigo/violet gradient: the default AI palette.
+       .cta { background: linear-gradient(90deg, #6366f1, #ec4899) }
+MEDIUM gradient-button      sloppy.html:17  Two-tone gradient button.
+       .cta { background: linear-gradient(90deg, #6366f1, #ec4899) }
+MEDIUM glow                 sloppy.html:17  Coloured glow shadow.
+       .cta { box-shadow: 0 0 40px rgba(168,85,247,.6) }
+MEDIUM glow                 sloppy.html:19  Heavily blurred colour blob used as background decoration.
+       .blob { filter: blur(120px) }
+MEDIUM sparkle-ticker       sloppy.html:21  Content that scrolls by itself, non-stop.
+       .ticker span { animation: marquee 18s linear infinite }
+MEDIUM glow                 sloppy.html:24  Coloured glow shadow.
+       .card { box-shadow: 0 0 30px rgba(139,92,246,.35) }
+MEDIUM side-stripe          sloppy.html:24  Thick coloured stripe down one side of a card.
+       .card { border-left: 4px solid #8b5cf6 }
+MEDIUM gradient-hero        sloppy.html:27  Indigo/violet gradient: the default AI palette.
+       .icon-box { background: linear-gradient(135deg, #6366f1, #a855f7) }
+MEDIUM hidden-at-rest       sloppy.html:31  Content starts invisible and waits for a script to reveal it.
+       .reveal { opacity: 0 }
+MEDIUM gradient-hero        sloppy.html:34  Indigo/violet gradient: the default AI palette.
+       .chat-bubble { background: linear-gradient(135deg,#6366f1,#ec4899) }
+MEDIUM floating-widgets     sloppy.html:34  Floating widget following the reader: keep only the navigation fixed.
+       .chat-bubble { position: fixed }
+MEDIUM eyebrow-label        sloppy.html:46  Small label on its own line above a heading: banned outright.
+       ✨ New: AI-powered lending <h1
+MEDIUM hype-copy            sloppy.html:46  "AI-powered": say concretely what it does for whom.
+       AI-powered
+MEDIUM emoji-headings       sloppy.html:47  Emoji in a heading.
+       🚀 Unlock your potential with the revolutionary AI-powered tool platform
+MEDIUM hype-copy            sloppy.html:47  "Unlock your potential": say concretely what it does for whom.
+       Unlock your potential
+MEDIUM hype-copy            sloppy.html:47  "revolutionary": say concretely what it does for whom.
+       revolutionary
+MEDIUM hype-copy            sloppy.html:48  "seamlessly": say concretely what it does for whom.
+       seamlessly
+MEDIUM hype-copy            sloppy.html:48  "empowers": say concretely what it does for whom.
+       empowers
+MEDIUM stock-lines          sloppy.html:48  "Say goodbye to" fits any business: say what this one does, for whom.
+       Say goodbye to
+MEDIUM stock-lines          sloppy.html:48  "at your fingertips" fits any business: say what this one does, for whom.
+       at your fingertips
+MEDIUM stock-lines          sloppy.html:48  "in just a few clicks" fits any business: say what this one does, for whom.
+       in just a few clicks
+MEDIUM auto-advancing       sloppy.html:52  Carousel, slider or tilt effect: show items whole and let people move them.
+       class="ticker"
+MEDIUM sparkle-ticker       sloppy.html:52  Sparkle-separated phrases: one clear headline instead.
+       ✦
+MEDIUM code-headings        sloppy.html:54  Code comment used as a label above a heading.
+       // features
+MEDIUM eyebrow-label        sloppy.html:54  Small label on its own line above a heading: banned outright.
+       // features <h2
+MEDIUM hidden-at-rest       sloppy.html:56  Scroll-reveal attribute: the element starts hidden until a script shows it.
+       data-aos
+MEDIUM auto-tile-grid       sloppy.html:57  Rounded icon tile stacked above a heading.
+       icon-box
+MEDIUM hype-copy            sloppy.html:57  "Next-generation": say concretely what it does for whom.
+       Next-generation
+MEDIUM hype-copy            sloppy.html:57  "elevates": say concretely what it does for whom.
+       elevates
+MEDIUM auto-tile-grid       sloppy.html:58  Rounded icon tile stacked above a heading.
+       icon-box
+MEDIUM auto-tile-grid       sloppy.html:59  Rounded icon tile stacked above a heading.
+       icon-box
+MEDIUM fake-proof           sloppy.html:68  Quote attributed to "Sarah J.": use a real, named person with permission, or leave it out.
+       — Sarah J.
+MEDIUM fake-logos           sloppy.html:69  "Trusted by" strip: only real clients with official logo files.
+       Trusted by
+MEDIUM vague-controls       sloppy.html:77  "Submit" does not say what happens: name the action and its object.
+       <button>Submit</button>
+MEDIUM build-slogans        sloppy.html:79  "Built with React" describes how it was made, not what it does for the reader.
+       Built with React
+MEDIUM build-slogans        sloppy.html:79  "Powered by AI" describes how it was made, not what it does for the reader.
+       Powered by AI
+LOW    off-scale-values     sloppy.html:1  17 different colours typed by hand outside the tokens: keep a palette as tokens.
+       17 literal colours outside custom properties
+LOW    large-pills          sloppy.html:17  Pill-shaped button: use straight or subtly rounded corners unless pills are the deliberate shape language.
+       .cta { border-radius: 9999px }
+LOW    transition-all       sloppy.html:17  transition: all as a reflex: name the properties that change.
+       .cta { transition: all .3s }
+LOW    decorative-glass     sloppy.html:24  Frosted glass: keep only over rich imagery.
+       .card { backdrop-filter: blur(12px) }
+LOW    truncated-cards      sloppy.html:26  Text cut off with "…": never cut what people need to read.
+       .card p { text-overflow: ellipsis }
+LOW    fake-status          sloppy.html:32  Pulsing status indicator: keep it only if it shows real, changing live data.
+       .live-dot { animation: pulse 1.4s infinite }
+LOW    cta-everywhere       sloppy.html:43  The same call to action shown three or more times.
+       "get started" ×5
+LOW    em-dashes            sloppy.html:48  2 em dashes: use commas, colons, parentheses or a new sentence.
+       —
+LOW    twin-ctas            sloppy.html:49  Twin buttons: make the second a quiet text link.
+       "Get started" + "Learn more"
+LOW    ing-riders           sloppy.html:57  ", ensuring ..." claims a meaning the sentence never shows: state the result or stop at the fact.
+       ensuring a smooth experience
+LOW    puffery              sloppy.html:58  "serves as": use is, has or does, or name the thing.
+       serves as
+LOW    ai-iconography       sloppy.html:59  Sparkles used as the AI badge: name the capability instead.
+       class="sparkles"
+LOW    ing-riders           sloppy.html:59  ", highlighting ..." claims a meaning the sentence never shows: state the result or stop at the fact.
+       highlighting the tools that matter most to you today
+LOW    virtue-words         sloppy.html:59  "genuinely understands": show it with a fact rather than announcing it.
+       genuinely understands
+LOW    fake-proof           sloppy.html:63  Numbers that count up on scroll: show the figure plainly, and only if it is real and sourced.
+       class="counter
+LOW    placeholder-content  sloppy.html:69  "Northwind" is a stock sample company name: use the real one or leave it out.
+       Northwind
+LOW    fake-discount        sloppy.html:73  Struck-through price: show a discount only for a real, time-limited offer.
+       <s>$
+LOW    most-popular         sloppy.html:73  "Most popular": keep only if it is actually the plan most people pick.
+       Most popular
+
+slop-guard: 1 file(s), 68 finding(s): 4 high, 46 medium, 18 low (context: web). Hits are evidence for a reviewer, not a verdict.

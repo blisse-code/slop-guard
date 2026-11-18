@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loans desk: Larkhill Tool Library</title>
+<meta name="description" content="Volunteer view of tools out on loan, due back today and overdue.">
+<meta property="og:image" content="after.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%232f5d3a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+:root {
+  --font-display: "Zilla Slab", Rockwell, serif;
+  --font-body: "Source Sans 3", "Segoe UI", sans-serif;
+  --ink: #1d211c;
+  --ink-2: #4a5148;
+  --paper: #f3f4f1;
+  --surface: #ffffff;
+  --line: #d5d9d2;
+  --accent: #2f5d3a;
+  --late: #a2341f;
+  --r-s: 4px;
+  --r-m: 8px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); font-size: 16px; line-height: 1.5; color: var(--ink); background: var(--paper); }
+h1, h2 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; }
+h1 { font-size: 32px; }
+h2 { font-size: 22px; margin-bottom: 12px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px 32px 48px; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.meta { color: var(--ink-2); }
+.counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0 32px; }
+.count { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-m); padding: 16px 20px; }
+.count strong { display: block; font-family: var(--font-display); font-size: 36px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.count span { color: var(--ink-2); }
+.count.late strong { color: var(--late); }
+.filters { display: flex; gap: 12px; align-items: end; margin-bottom: 16px; flex-wrap: wrap; }
+label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+select { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--surface); color: var(--ink); }
+table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-m); font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+th { font-size: 14px; color: var(--ink-2); font-weight: 600; }
+td.num, th.num { text-align: right; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+.status-late { color: var(--late); font-weight: 600; }
+button { font: inherit; font-weight: 600; padding: 8px 14px; border-radius: var(--r-s); border: 1px solid var(--accent); background: var(--surface); color: var(--accent); cursor: pointer; transition: background-color .15s ease; }
+button:hover { background-color: #e6ede7; }
+button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.note { color: var(--ink-2); font-size: 14px; margin-top: 16px; }
+@media (max-width: 760px) { .wrap { padding: 20px 16px 40px; } .counts { grid-template-columns: 1fr; } th:nth-child(3), td:nth-child(3) { display: none; } th, td { padding: 10px 8px; } }
+@media (prefers-reduced-motion: reduce) { button { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Loans desk</h1>
+    <span class="meta">Thursday 12 March, evening shift</span>
+  </header>
+
+  <div class="counts">
+    <div class="count"><strong>41</strong><span>tools out on loan</span></div>
+    <div class="count"><strong>9</strong><span>due back tonight</span></div>
+    <div class="count late"><strong>4</strong><span>overdue by more than a week</span></div>
+  </div>
+
+  <h2>Overdue</h2>
+  <div class="filters">
+    <div><label for="sort">Sort by</label><select id="sort"><option>Days late</option><option>Member</option><option>Tool</option></select></div>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Member</th><th>Tool</th><th>Due</th><th class="num">Days late</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>M. Haddad</td><td>Floor sander</td><td>26 Feb</td><td class="num status-late">15</td><td><button>Send reminder<span class="vh"> to M. Haddad</span></button></td></tr>
+      <tr><td>T. Lindqvist</td><td>6-metre ladder</td><td>28 Feb</td><td class="num status-late">13</td><td><button>Send reminder<span class="vh"> to T. Lindqvist</span></button></td></tr>
+      <tr><td>P. Mwangi</td><td>Tile cutter</td><td>2 Mar</td><td class="num status-late">10</td><td><button>Send reminder<span class="vh"> to P. Mwangi</span></button></td></tr>
+      <tr><td>J. Kowalski</td><td>Hedge trimmer</td><td>4 Mar</td><td class="num status-late">8</td><td><button>Send reminder<span class="vh"> to J. Kowalski</span></button></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Reminders go by text message. A member with a tool more than three weeks late cannot borrow again until it comes back. Sample data for a fictional library.</p>
+</div>
+</body>
+</html>

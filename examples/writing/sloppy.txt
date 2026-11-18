@@ -1,0 +1,64 @@
+MEDIUM hype-copy            sloppy.md:1  "Game-Changer": say concretely what it does for whom.
+       Game-Changer
+MEDIUM emoji-headings       sloppy.md:1  Emoji in a heading.
+       🚀 Why Our Tool Library Is A Game-Changer For Your Community
+MEDIUM staged-reveals       sloppy.md:3  "Here's what nobody tells you about owning tools": state the point directly.
+       Here's what nobody tells you about owning tools
+MEDIUM staged-reveals       sloppy.md:5  "It's not just a library. It's a movement.": state the point directly.
+       It's not just a library. It's a movement.
+MEDIUM vague-authority      sloppy.md:7  "Studies show": name the source and its date, or drop the claim.
+       Studies show
+MEDIUM hype-copy            sloppy.md:9  "Seamless": say concretely what it does for whom.
+       Seamless
+MEDIUM stock-lines          sloppy.md:9  "Say goodbye to" fits any business: say what this one does, for whom.
+       Say goodbye to
+MEDIUM stock-lines          sloppy.md:9  "in just a few clicks" fits any business: say what this one does, for whom.
+       in just a few clicks
+MEDIUM hype-copy            sloppy.md:11  "AI-powered": say concretely what it does for whom.
+       AI-powered
+MEDIUM hype-copy            sloppy.md:11  "cutting-edge": say concretely what it does for whom.
+       cutting-edge
+MEDIUM hype-copy            sloppy.md:11  "unlock your potential": say concretely what it does for whom.
+       unlock your potential
+MEDIUM engagement-bait      sloppy.md:17  "What's your take?": end on the last concrete point.
+       What's your take?
+MEDIUM engagement-bait      sloppy.md:17  "Let me know in the comments": end on the last concrete point.
+       Let me know in the comments
+MEDIUM stock-lines          sloppy.md:17  "Join thousands of" fits any business: say what this one does, for whom.
+       Join thousands of
+MEDIUM stock-lines          sloppy.md:17  "take your DIY to the next level" fits any business: say what this one does, for whom.
+       take your DIY to the next level
+MEDIUM engagement-bait      sloppy.md:19  4 hashtags: two at most, worked into the text.
+       #community
+LOW    echo-openers         sloppy.md:1  Three sentences in a row open with "it means".
+       it means
+LOW    title-case-headings  sloppy.md:1  Heading in Title Case: use sentence case unless the brand says otherwise.
+       🚀 Why Our Tool Library Is A Game-Changer For Your Community
+LOW    ai-filler-words      sloppy.md:3  "In today's fast-paced world" adds words without meaning.
+       In today's fast-paced world
+LOW    ai-filler-words      sloppy.md:3  "it's worth noting" adds words without meaning.
+       it's worth noting
+LOW    virtue-words         sloppy.md:7  "genuinely passionate": show it with a fact rather than announcing it.
+       genuinely passionate
+LOW    wordy-phrases        sloppy.md:7  "are able to": use the short form.
+       are able to
+LOW    wordy-phrases        sloppy.md:7  "due to the fact that": use the short form.
+       due to the fact that
+LOW    stock-transitions    sloppy.md:7  2 sentences open on stock connectors (Moreover, Furthermore).
+       Moreover
+LOW    exclamations         sloppy.md:7  3 exclamation marks in body copy.
+       !
+LOW    decorative-headings  sloppy.md:8  Bullet that opens with a bolded label: write it as a plain sentence.
+       - **Seamless borrowing:** S
+LOW    em-dashes            sloppy.md:9  1 em dash: use commas, colons, parentheses or a new sentence.
+       —
+LOW    puffery              sloppy.md:10  "serves as a": use is, has or does, or name the thing.
+       serves as a
+LOW    puffery              sloppy.md:10  "in the heart of": use is, has or does, or name the thing.
+       in the heart of
+LOW    ing-riders           sloppy.md:10  ", fostering ..." claims a meaning the sentence never shows: state the result or stop at the fact.
+       fostering connection
+LOW    decorative-headings  sloppy.md:15  Heading that could sit over any section: say what this one shows.
+       Final Thoughts
+
+slop-guard: 1 file(s), 31 finding(s): 0 high, 16 medium, 15 low (context: copy). Hits are evidence for a reviewer, not a verdict.

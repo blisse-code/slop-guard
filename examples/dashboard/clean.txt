@@ -1,0 +1,2 @@
+
+slop-guard: 1 file(s), 0 finding(s): 0 high, 0 medium, 0 low (context: app). Hits are evidence for a reviewer, not a verdict.
