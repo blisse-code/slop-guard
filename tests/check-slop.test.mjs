@@ -427,7 +427,9 @@ test('v2.2 profiles: off, severity, allow and ban; hard rules need allowHardOff;
   assert.throws(() => loadProfile(tmp('r.json', '{"offf": []}')), /unknown key offf/);
   assert.throws(() => loadProfile(tmp('s.json', '{"off": ["no-such-rule"]}')), /"no-such-rule", which does not exist/);
   assert.throws(() => loadProfile(tmp('t.json', '{"genre": "poetry"}')), /unknown genre "poetry"/);
-  for (const ex of fs.readdirSync(path.join(PD, '..', '..', '..', 'profiles')).filter((x) => x.endsWith('.json'))) loadProfile(path.join(PD, '..', '..', '..', 'profiles', ex));
+  // vendored copies carry tests/ but not profiles/
+  const PROFILES = path.join(PD, '..', '..', '..', 'profiles');
+  if (fs.existsSync(PROFILES)) for (const ex of fs.readdirSync(PROFILES).filter((x) => x.endsWith('.json'))) loadProfile(path.join(PROFILES, ex));
 });
 test('v2.2 trend score: skips short texts, drops as findings pile up, and the CLI reports and records it', () => {
   assert.equal(trendScore([{ severity: 'high' }], 100), null);
