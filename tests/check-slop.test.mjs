@@ -457,3 +457,44 @@ test('v2.2 CLI: --fail-on hard and --genre, with unknown values refused', () => 
   assert.match(cli(soft, '--fail-on', 'sometimes').out, /--fail-on takes hard, high, medium or low/);
   assert.match(cli('--genres').out, /legal: Contracts/);
 });
+
+// ---- v2.3: arrangement of ideas, repetition across files, unsourced claims, text outside the body ----
+const para = (seed, n = 95) => Array.from({ length: n }, (_, i) => ['library', 'volunteers', 'borrowers', 'tools', 'opening', 'hours', 'deposit', 'repairs', 'ladders', 'drills', 'members', 'weekend'][(i * 7 + seed) % 12]).join(' ');
+test('v2.3 arrangement: an ending that restates the opening, and preview-then-recap structure', () => {
+  const opening = 'Our tool library lends drills, ladders and sanders to members for a small yearly fee, run by volunteers on weekends.';
+  const middle = [1, 2, 3].map((i) => `${para(i)}.`).join('\n\n');
+  plant(`${opening}\n\n${middle}\n\nIn short, our tool library lends drills, ladders and sanders to members for a small yearly fee, run by volunteers.`, 'text', 'doc', 'recap-endings');
+  quiet(`${opening}\n\n${middle}\n\nNext month we add a repair bench on Saturdays; members can book it from the 3rd.`, 'text', 'doc', 'recap-endings');
+  const doc = `# Guide\n\nThis guide covers borrowing, returns and repairs at the tool library, run by volunteers for members.\n\n## Borrowing\n\n${para(1)}.\n\n## Returns\n\n${para(2)}.\n\n## Repairs\n\n${para(3)}.\n\nIn short, this guide covered borrowing, returns and repairs at the tool library, run by volunteers for members.`;
+  plant(doc, 'text', 'doc', 'signposted-structure');
+  for (const f of fs.readdirSync(PD).filter((x) => x.endsWith('.txt'))) for (const r of ['recap-endings', 'signposted-structure']) quiet(fs.readFileSync(path.join(PD, f), 'utf8'), 'text', 'doc', r);
+});
+test('v2.3 unsourced claims: superlatives, proof words and figures need a source', () => {
+  plant('We are the fastest booking platform in Malaysia.', 'text', 'copy', 'unsourced-claims');
+  plant('Our method is proven to cut churn.', 'text', 'copy', 'unsourced-claims');
+  plant('Teams answer tickets 40% faster with it.', 'text', 'copy', 'unsourced-claims');
+  quiet('Teams answered tickets 40% faster in the pilot (Lee et al., 2024).', 'text', 'doc', 'unsourced-claims');
+  quiet('According to Statistics Malaysia, 31% of households rent.', 'text', 'doc', 'unsourced-claims');
+  quiet('Loans rose 12% in May.\n\n## Sources\n\n- Library ledger, May 2026.', 'text', 'doc', 'unsourced-claims');
+  quiet('It was the best of times, it was the worst of times.', 'text', 'doc', 'unsourced-claims');
+  quiet('<p>Response times fell 30% (<a href="https://example.org/report">county report</a>).</p>', 'html', 'web', 'unsourced-claims');
+});
+test('v2.3 repeated across files: the same sentence on three pages, but not in navigation or footers', () => {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'slop-guard-site-'));
+  const line = 'We help ambitious teams unlock their full potential every single day.';
+  for (const n of ['a', 'b', 'c']) fs.writeFileSync(path.join(d, `${n}.html`), `<html lang="en"><head><title>${n}</title></head><body><nav><a href="/">Home of the tool library and its many volunteers</a></nav><main><p>${line}</p><p>Page ${n} lists ${n} things.</p></main><footer><p>Run by volunteers in Petaling Jaya since the spring of 2019.</p></footer></body></html>`);
+  const found = checkPaths([d], { context: 'web' }).findings.filter((f) => f.rule === 'repeated-across-files');
+  assert.equal(found.length, 1); assert.match(found[0].evidence, /ambitious teams/);
+  assert.equal(checkPaths([path.join(d, 'a.html'), path.join(d, 'b.html')], { context: 'web' }).findings.filter((f) => f.rule === 'repeated-across-files').length, 0);
+});
+test('v2.3 text outside the page body: alt text, meta descriptions, SVG text, JSX and stdin', () => {
+  plant('<img src="a.png" alt="A seamless, revolutionary dashboard" width="10" height="10">', 'html', 'web', 'hype-copy');
+  plant('<html lang="en"><head><title>x</title><meta name="description" content="Unlock your potential with our platform."></head><body><p>Hours.</p></body></html>', 'html', 'web', 'hype-copy');
+  assert.ok(rulesHit(checkText('<svg xmlns="http://www.w3.org/2000/svg"><text x="1" y="1">Revolutionary insights at your fingertips</text></svg>', 'svg', 'chart.svg')).has('stock-lines'));
+  const jsx = 'export const Hero = () => (<section><h1>Supercharge your workflow</h1><img src="a.png" alt="Team photo" /></section>);\n';
+  assert.ok(rulesHit(checkText(jsx, 'code', 'Hero.jsx', { context: 'code' })).has('hype-copy'));
+  assert.ok(!rulesHit(checkText(jsx.replace('Supercharge your workflow', 'Borrow a drill for the weekend'), 'code', 'Hero.jsx', { context: 'code' })).has('hype-copy'));
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const out = execFileSync(process.execPath, [path.join(root, 'check-slop.mjs'), '--stdin', '--context', 'doc'], { input: 'Refactor: a seamless, game-changing update to the parser.\n', encoding: 'utf8' });
+  assert.match(out, /hype-copy\s+<stdin>:1/);
+});

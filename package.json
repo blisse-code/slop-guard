@@ -1,6 +1,6 @@
 {
   "name": "slop-guard",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Anti-slop rules for AI-made pages, apps, decks, documents, copy, images and code, with a checker that needs no dependencies.",
   "type": "module",
   "bin": {

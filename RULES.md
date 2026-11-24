@@ -1,7 +1,7 @@
 <!-- slop-guard: ignore-file (this file lists the patterns themselves) -->
 # slop-guard rules by context
 
-Generated from `rules.json` v2.2.0 by `node check-slop.mjs --rules-md`. Do not edit by hand. 178 rules. These are design and writing preferences, not a test of who or what made something.
+Generated from `rules.json` v2.3.0 by `node check-slop.mjs --rules-md`. Do not edit by hand. 182 rules. These are design and writing preferences, not a test of who or what made something.
 
 ## web: Websites and landing pages
 
@@ -154,6 +154,8 @@ Generated from `rules.json` v2.2.0 by `node check-slop.mjs --rules-md`. Do not e
 | uniform-rhythm | Sentences or paragraphs that are all about the same length, so the text reads like a metronome. | Let length follow the thought: a long sentence that reasons, a short one that lands. | machine, judgement | low |
 | rule-of-three | Lists of exactly three, over and over: "fast, simple and secure". | Keep the threes that are real. Name two, or four, when that is the truth. | machine, judgement | low |
 | profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
+| repeated-across-files | The same sentence on three or more pages or documents (navigation, headers and footers aside). | Write each page for its own reader, or keep the shared text in one place and link to it. | machine | low |
+| unsourced-claims | Superlatives, proof words and figures with no source: "the fastest platform", "proven to", "40% faster". | Name who measured it and when, link the source, or drop the claim. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).
@@ -397,6 +399,10 @@ Generated from `rules.json` v2.2.0 by `node check-slop.mjs --rules-md`. Do not e
 | uniform-rhythm | Sentences or paragraphs that are all about the same length, so the text reads like a metronome. | Let length follow the thought: a long sentence that reasons, a short one that lands. | machine, judgement | low |
 | rule-of-three | Lists of exactly three, over and over: "fast, simple and secure". | Keep the threes that are real. Name two, or four, when that is the truth. | machine, judgement | low |
 | profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
+| recap-endings | An ending that restates the opening: the last paragraph says again what the first one said. | End on something new: the decision, the next step, the open question or the cost. | machine, judgement | low |
+| signposted-structure | Say what you will say, say it, then say what you said: an introduction that lists every section and an ending that repeats it. | Open on the point, let headings carry the structure, and say each thing once. | machine, judgement | medium |
+| repeated-across-files | The same sentence on three or more pages or documents (navigation, headers and footers aside). | Write each page for its own reader, or keep the shared text in one place and link to it. | machine | low |
+| unsourced-claims | Superlatives, proof words and figures with no source: "the fastest platform", "proven to", "40% faster". | Name who measured it and when, link the source, or drop the claim. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).
@@ -476,6 +482,10 @@ Generated from `rules.json` v2.2.0 by `node check-slop.mjs --rules-md`. Do not e
 | uniform-rhythm | Sentences or paragraphs that are all about the same length, so the text reads like a metronome. | Let length follow the thought: a long sentence that reasons, a short one that lands. | machine, judgement | low |
 | rule-of-three | Lists of exactly three, over and over: "fast, simple and secure". | Keep the threes that are real. Name two, or four, when that is the truth. | machine, judgement | low |
 | profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
+| recap-endings | An ending that restates the opening: the last paragraph says again what the first one said. | End on something new: the decision, the next step, the open question or the cost. | machine, judgement | low |
+| signposted-structure | Say what you will say, say it, then say what you said: an introduction that lists every section and an ending that repeats it. | Open on the point, let headings carry the structure, and say each thing once. | machine, judgement | medium |
+| repeated-across-files | The same sentence on three or more pages or documents (navigation, headers and footers aside). | Write each page for its own reader, or keep the shared text in one place and link to it. | machine | low |
+| unsourced-claims | Superlatives, proof words and figures with no source: "the fastest platform", "proven to", "40% faster". | Name who measured it and when, link the source, or drop the claim. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] At first glance: someone can tell what the page is for and what to click within five seconds.
@@ -538,6 +548,9 @@ Generated from `rules.json` v2.2.0 by `node check-slop.mjs --rules-md`. Do not e
 | uniform-rhythm | Sentences or paragraphs that are all about the same length, so the text reads like a metronome. | Let length follow the thought: a long sentence that reasons, a short one that lands. | machine, judgement | low |
 | rule-of-three | Lists of exactly three, over and over: "fast, simple and secure". | Keep the threes that are real. Name two, or four, when that is the truth. | machine, judgement | low |
 | profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
+| recap-endings | An ending that restates the opening: the last paragraph says again what the first one said. | End on something new: the decision, the next step, the open question or the cost. | machine, judgement | low |
+| repeated-across-files | The same sentence on three or more pages or documents (navigation, headers and footers aside). | Write each page for its own reader, or keep the shared text in one place and link to it. | machine | low |
+| unsourced-claims | Superlatives, proof words and figures with no source: "the fastest platform", "proven to", "40% faster". | Name who measured it and when, link the source, or drop the claim. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] At first glance: someone can tell what the page is for and what to click within five seconds.

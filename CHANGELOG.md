@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.3.0 (2026-11-24)
+
+Checks that look past single words: how the ideas are arranged, claims with no source, repetition across a site, and text outside the page body.
+
+- **Four new rules** (182 in all):
+  - `recap-endings`: the last paragraph restates the first.
+  - `signposted-structure`: an introduction that names the section headings, plus an ending that repeats the opening.
+  - `unsourced-claims`: commercial superlatives, proof words ("proven to", "award-winning") and figures ("40% faster") with no citation, link or named source in that sentence or the next. Figures also pass in a document with a Sources or References section.
+  - `repeated-across-files`: one sentence on three or more files in a run. Navigation, headers, footers and asides are left out.
+- **Text outside the page body:**
+  - HTML alt text, titles, ARIA labels and meta or Open Graph descriptions get the word-level prose checks.
+  - `.svg` files are read for their visible text.
+  - Words in JSX and TSX components are checked under the web rules.
+- **`--stdin`** checks piped text, such as a commit message or a pull request description. `--kind html` and `--name` are optional.
+
 ## 2.2.0 (2026-11-24)
 
 Fewer false alarms, rhetoric and rhythm rules, and ways to tune the checker without forking it.

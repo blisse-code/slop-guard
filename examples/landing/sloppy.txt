@@ -146,6 +146,8 @@ LOW    virtue-words         sloppy.html:59  "genuinely understands": show it wit
        genuinely understands
 LOW    fake-proof           sloppy.html:63  Numbers that count up on scroll: show the figure plainly, and only if it is real and sourced. [hard]
        class="counter
+LOW    unsourced-claims     sloppy.html:64  1 figure such as "99.9%" with no source in the sentence or the next: link or name the source, or add a Sources section.
+       99.9%
 LOW    placeholder-content  sloppy.html:69  "Northwind" is a stock sample company name: use the real one or leave it out. [hard]
        Northwind
 LOW    fake-discount        sloppy.html:73  Struck-through price: show a discount only for a real, time-limited offer.
@@ -153,5 +155,5 @@ LOW    fake-discount        sloppy.html:73  Struck-through price: show a discoun
 LOW    most-popular         sloppy.html:73  "Most popular": keep only if it is actually the plan most people pick.
        Most popular
 
-slop-guard: 1 file(s), 77 finding(s): 4 high, 54 medium, 19 low; 16 hard (context: web). Hits are evidence for a reviewer, not a verdict.
+slop-guard: 1 file(s), 78 finding(s): 4 high, 54 medium, 20 low; 16 hard (context: web). Hits are evidence for a reviewer, not a verdict.
 Trend score: 0/100. Use it to compare versions of the same work over time; it is not a grade.

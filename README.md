@@ -2,7 +2,7 @@
 
 Rules for spotting the habits that make AI-made work look generic, and a small checker that finds the ones a machine can see. It covers web pages, app screens, decks, documents, copy, images and code. Each context gets its own rules.
 
-The checker is one Node file with no dependencies. It reads HTML, CSS, Markdown, plain text, and JavaScript, TypeScript and Python source. A hit is evidence for a reviewer, not a verdict. The rules are preferences about design and writing. They are not a test of who or what made something.
+The checker is one Node file with no dependencies. It reads HTML, CSS, SVG, Markdown, plain text, and JavaScript, TypeScript and Python source, or text piped in. A hit is evidence for a reviewer, not a verdict. The rules are preferences about design and writing. They are not a test of who or what made something.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/flow-dark.svg">
@@ -45,6 +45,8 @@ node check-slop.mjs --list --context app      # the rules for one context
 node check-slop.mjs --rubric --context doc    # only the rows you check by eye
 node check-slop.mjs --genres                  # the genres and what each one relaxes
 node check-slop.mjs src --context code         # a code change in JS, TS or Python
+git log -1 --format=%B | node check-slop.mjs --stdin --context doc   # a commit message
+gh pr view 12 --json body -q .body | node check-slop.mjs --stdin --context doc
 ```
 
 `--strict` exits with code 1 when there is a high-severity finding, so you can use it in CI. `--fail-on hard` fails only on hard findings, and `--fail-on medium` on anything medium or worse. `--pairing` checks that a type pairing was chosen and written down before the build started (see `SKILL.md`).
@@ -54,6 +56,13 @@ node check-slop.mjs src --context code         # a code change in JS, TS or Pyth
 - **Quoted, cited and code text is skipped.** The prose checks ignore text in quotation marks, code blocks and inline code, blockquotes and links, so a report that quotes "unlock your potential" to criticise it is not flagged for it. Mark any other region with `<!-- slop-guard: off -->` and `<!-- slop-guard: on -->`, or a whole file with `<!-- slop-guard: ignore-file -->`.
 - **Literal senses are kept.** "Elevated blood pressure", "seamless steel tubes", "the engine's flywheel", "the company name on the invoice" and "studies show (Lee et al., 2021)" pass, while "elevate your brand" and "our growth flywheel" are still flagged.
 - **A false-alarm set.** Public-domain prose (Lincoln, Austen, Thoreau, Dickens and others, in `tests/fixtures/public-domain/`) must raise nothing at medium or above. A new prose rule ships only when it stays quiet there.
+
+## Beyond single words
+
+- **How the ideas are arranged.** In documents, slop-guard flags an ending that restates the opening, and the "say what you'll say, say it, say what you said" pattern: an introduction that lists every section, with an ending that repeats it.
+- **Claims with no source.** "The fastest platform", "proven to", "award-winning" and figures like "40% faster" are flagged unless the sentence, or the next one, names or links a source. Figures also pass when the document has a Sources or References section.
+- **The same sentence across a site.** When you check a folder, a sentence on three or more pages or documents is flagged. Navigation, headers, footers and asides are left out, because they repeat by design.
+- **Text outside the page body.** Alt text, titles, labels and meta descriptions in HTML, the text in SVG files, words in JSX and TSX components, and anything piped in with `--stdin` (commit messages, pull request descriptions) all get the prose checks.
 
 ## Genres, profiles, hard and soft
 
@@ -79,10 +88,10 @@ Each file of prose with 150 words or more gets a 0–100 trend score, weighted b
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/contexts-dark.svg">
-  <img alt="Rules per context: web 147 rules with 110 found by the checker; app 106 rules with 77 found by the checker; deck 111 rules with 85 found by the checker; doc 68 rules with 54 found by the checker; copy 52 rules with 45 found by the checker; image 8 rules with 4 found by the checker; code 17 rules with 15 found by the checker." src="docs/contexts-light.svg" width="100%">
+  <img alt="Rules per context: web 149 rules with 112 found by the checker; app 106 rules with 77 found by the checker; deck 115 rules with 89 found by the checker; doc 72 rules with 58 found by the checker; copy 55 rules with 48 found by the checker; image 8 rules with 4 found by the checker; code 17 rules with 15 found by the checker." src="docs/contexts-light.svg" width="100%">
 </picture>
 
-All 178 rules, by context: [RULES.md](RULES.md).
+All 182 rules, by context: [RULES.md](RULES.md).
 
 Text people read on a page uses curly quotes and apostrophes. Code, Markdown source, commands and attributes keep straight ones. The checker flags straight quotes only in the visible text of HTML.
 
@@ -92,7 +101,7 @@ Each example has a sloppy version and a clean version of the same content. The c
 
 ### Landing page
 
-| Before: 77 findings | After: 0 findings |
+| Before: 78 findings | After: 0 findings |
 |---|---|
 | ![Sloppy landing page with a violet gradient hero, gradient text, emoji and a sparkle ticker](examples/landing/before.png) | ![Clean landing page for a tool lending library with opening hours and one button](examples/landing/after.png) |
 

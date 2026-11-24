@@ -243,6 +243,84 @@ function rhetoricDetectors(text, add) {
   if (triplets.length >= 4 && words / triplets.length <= 150) add('triplets', triplets[0], `${triplets.length} lists of exactly three ("${triplets[0]}"): keep the threes that are real and break the pattern elsewhere.`);
 }
 
+// ---- v2.3: arrangement of ideas, unsourced claims ------------------------------------------
+const stem = (w) => w.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '');
+const contentWords = (t) => new Set((t.toLowerCase().match(/[a-z][a-z'’-]{3,}/g) || []).filter((w) => !STOPWORDS.has(w)).map(stem));
+const overlap = (a, b) => { if (!a.size || !b.size) return 0; let n = 0; for (const w of a) if (b.has(w)) n++; return n / Math.min(a.size, b.size); };
+const RECAP = /^(?:in short|in sum|to sum (?:it )?up|to summari[sz]e|in summary|so,|ultimately|in the end|all in all|the bottom line|in conclusion|overall|to conclude|that'?s why|which is why)\b/i;
+// Preview, body, recap: the ending restates the opening, or the introduction lists every
+// section and the ending repeats it.
+function arrangementDetectors(text, add) {
+  const lines = text.split('\n');
+  const heads = [], body = [];
+  let intro = [], seenHead = false;
+  for (const l of lines) {
+    const h = l.match(/^#{2,3}\s+(.+)/);
+    if (h) { heads.push(h[1]); seenHead = true; continue; }
+    if (!seenHead && !/^\s*#/.test(l)) intro.push(l);
+  }
+  const paras = proseParagraphs(text).filter((p) => !/"/.test(p));
+  if (paras.length < 4 || wordCount(paras.join(' ')) < 250) return;
+  const first = contentWords(paras[0]), last = contentWords(paras[paras.length - 1]);
+  const o = overlap(first, last), lastP = paras[paras.length - 1];
+  const recap = (RECAP.test(lastP) && o >= 0.4 && last.size >= 4) || (o >= 0.6 && last.size >= 6);
+  if (recap) add('recap-ending', lastP.slice(0, 80), `The last paragraph restates the first (${Math.round(o * 100)}% of its key words): end on something new, such as the decision, the next step or the open question.`);
+  const introWords = contentWords(proseParagraphs(intro.join('\n')).join(' '));
+  const previewed = heads.filter((h) => { const w = contentWords(h); return w.size && [...w].every((x) => introWords.has(x)); });
+  if (heads.length >= 3 && previewed.length / heads.length >= 0.75 && recap) add('preview-recap', heads[0], `The introduction names ${previewed.length} of ${heads.length} section headings and the ending repeats the opening: say it once, in the section where it belongs.`);
+}
+// Claims a reader would want a source for. Commercial superlatives and proof words are medium;
+// bare percentages and multipliers are low, and count as sourced when the document has a
+// Sources or References section.
+const SUPERLATIVE = /\b(?:the|our|its|their) (?:best|fastest|cheapest|safest|easiest|smartest|leading|top-rated|highest-rated|most (?:trusted|popular|advanced|accurate|reliable|secure|powerful|affordable|loved))\b(?: [\w-]+){0,3}? (?:tools?|apps?|platforms?|products?|services?|solutions?|software|agenc(?:y|ies)|compan(?:y|ies)|teams?|choices?|options?|ways?|providers?|brands?|models?|systems?|partners?|studios?)\b|\b(?:#1|number one|no\. 1) (?:[\w-]+ ){0,2}(?:tools?|apps?|platforms?|products?|services?|solutions?|software|agency|company|choice|provider|brand)\b|\bworld'?s (?:first|leading|largest|best|fastest|most (?:trusted|popular|advanced|accurate|reliable|secure|powerful|loved|used))\b|\b(?:industry|market|category)[- ]leading\b|\bclinically (?:proven|tested)\b|\bscientifically proven\b|\bproven to\b|\bguaranteed? (?:to|results?|success)\b|\baward-winning\b/gi;
+const FIGURE = /(?<![\w.])\d+(?:\.\d+)?\s?%|(?<![\w.])\d+(?:\.\d+)?x (?:faster|more|better|cheaper|less|fewer|higher|lower|quicker)\b|\b\d+(?:\.\d+)? times (?:faster|more|better|cheaper|less|fewer|higher|lower|quicker)\b/gi;
+const SOURCES_SECTION = /^#{1,6}\s*(?:sources?|references?|bibliography|citations?|notes|endnotes|footnotes|data sources?|methodology)\b|<h[1-6][^>]*>\s*(?:sources?|references?|bibliography|citations?|notes)\b/im;
+const ATTRIBUTION = /\b[Aa]ccording to [A-Z]|\b(?:reports?|found|finds|survey|study|data) (?:by|from) [A-Z]|\b[A-Z][\w&.-]+(?: [A-Z][\w&.-]+){0,3} (?:reports?|reported|found|finds|estimates?|estimated) (?:that )?/;
+function claimDetectors(raw, add) {
+  const docSourced = SOURCES_SECTION.test(raw);
+  const clean = maskProse(raw, { quotes: false, urls: false });
+  const paras = proseParagraphs(clean);
+  const sup = [], fig = [];
+  for (const p of paras) {
+    const sents = sentencesOf(p);
+    sents.forEach((sent, i) => {
+      const sourced = CITATION.test(sent) || ATTRIBUTION.test(sent) || CITATION.test(sents[i + 1] || '');
+      if (sourced) return;
+      const unquoted = maskProse(sent, { code: false, blockquotes: false, urls: false });
+      for (const m of unquoted.matchAll(SUPERLATIVE)) sup.push(m[0]);
+      if (!docSourced) for (const m of unquoted.matchAll(FIGURE)) fig.push(m[0]);
+    });
+  }
+  if (sup.length) add('unsourced-claim', sup[0], `${sup.length} claim${sup.length > 1 ? 's' : ''} like "${sup[0]}" with no source nearby: cite who measured it, or drop the claim.`);
+  if (fig.length) add('unsourced-claim', fig[0], `${fig.length} figure${fig.length > 1 ? 's' : ''} such as "${fig[0]}" with no source in the sentence or the next: link or name the source, or add a Sources section.`, 'low');
+}
+// Text people see outside the page body: alt text, titles, labels and meta descriptions in HTML,
+// text in SVG, and text in JSX. Returned as a copy of the source the same length, with everything
+// else blanked, so line numbers stay right.
+function keepOnly(src, ranges) {
+  const out = src.replace(/[^\n]/g, ' ').split('');
+  for (const [a, b] of ranges) for (let k = a; k < b; k++) out[k] = src[k] === '\n' ? '\n' : src[k];
+  return out.join('');
+}
+const SENTENCE_END = (s) => (/[.!?:]\s*$/.test(s) ? '' : '.');
+function attributeText(html) {
+  const ranges = [];
+  for (const m of html.matchAll(/\s(alt|title|aria-label|aria-description)\s*=\s*(["'])([^"'\n]{3,})\2/gi)) { const at = m.index + m[0].lastIndexOf(m[3]); ranges.push([at, at + m[3].length]); }
+  for (const m of html.matchAll(/<meta\b[^>]*(?:name|property)\s*=\s*["'](?:description|og:description|og:title|twitter:description|twitter:title)["'][^>]*>/gi)) { const c = m[0].match(/\scontent\s*=\s*(["'])([^"']+)\1/i); if (c) { const at = m.index + m[0].indexOf(c[2]); ranges.push([at, at + c[2].length]); } }
+  return keepOnly(html, ranges);
+}
+function svgText(svg) {
+  const ranges = [];
+  for (const m of svg.matchAll(/<(text|tspan|title|desc)\b[^>]*>([^<]+)</gi)) { const at = m.index + m[0].indexOf('>') + 1; ranges.push([at, at + m[2].length]); }
+  return keepOnly(svg, ranges);
+}
+function jsxText(src) {
+  const ranges = [];
+  for (const m of src.matchAll(/>([^<>{}`;=()]*[A-Za-z]{2,}[^<>{}`;=()]*)<\/?[A-Za-z]/g)) { if (/^\s*$/.test(m[1]) || /&&|\|\||=>/.test(m[1])) continue; const at = m.index + 1; ranges.push([at, at + m[1].length]); }
+  for (const m of src.matchAll(/\s(alt|title|aria-label|label|description|heading|subtitle|cta)\s*=\s*(["'])([^"'\n]{3,})\2/g)) { const at = m.index + m[0].lastIndexOf(m[3]); ranges.push([at, at + m[3].length]); }
+  return keepOnly(src, ranges);
+}
+
 // ---- detectors -----------------------------------------------------------------------------
 // Each returns findings { detector, line, evidence, message, severity? }.
 function cssDetectors(css, file) {
@@ -642,6 +720,9 @@ function htmlDetectors(html, file, year, opts = {}) {
   for (const m of src.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)) if ((m[1].match(/<(strong|b)\b/gi) || []).length >= 3) { add('bold-overuse', m.index, textOf(m[1]).slice(0, 80), 'Three or more bold phrases in one paragraph.'); break; }
   const prose = opts.mask === false ? src : src.replace(/<(code|pre|kbd|samp|blockquote|q)\b[\s\S]*?<\/\1>/gi, blank);
   out.push(...textDetectors(textOf(prose), file, year, prose, opts));
+  // v2.3: alt text, titles, labels and meta descriptions get the word-level prose checks too
+  const attrs = attributeText(html);
+  if (/\S/.test(attrs)) out.push(...textDetectors(attrs, file, year, attrs, { ...opts, fragments: true }).filter((f) => !['exclaim', 'em-dash', 'ambiguous-date'].includes(f.detector)).map((f) => ({ ...f, message: `In alt text, a title, a label or a meta description: ${f.message}` })));
   return out;
 }
 
@@ -655,7 +736,8 @@ function textDetectors(text, file, year, original = text, opts = {}) {
   // Quotes, code, blockquotes and links are blanked for the prose patterns (v2.2). `raw` keeps the
   // unmasked text for the literal-sense guards, which need to see citations and links.
   const raw = text;
-  if (opts.mask !== false) { text = maskProse(text, opts.mask || {}); original = same ? text : maskProse(original, { ...(opts.mask || {}), quotes: false }); }
+  // fragments (alt text, SVG and JSX text) sit in blanked source, so indentation is not code there
+  if (opts.mask !== false) { text = maskProse(text, { ...(opts.mask || {}), ...(opts.fragments ? { code: false } : {}) }); original = same ? text : maskProse(original, { ...(opts.mask || {}), quotes: false }); }
   const out = [];
   const lineOf = (needle) => { const i = original.indexOf(needle); return i >= 0 ? lineAt(original, i) : 1; };
   const add = (detector, evidence, message, severity) => out.push({ detector, file, line: lineOf(evidence), evidence: String(evidence).slice(0, 160), message, severity });
@@ -743,8 +825,13 @@ function textDetectors(text, file, year, original = text, opts = {}) {
   for (const m of text.matchAll(PROMO)) if (once('pw' + m[0].toLowerCase())) add('promo-word', m[0], `"${m[0]}": describe what is there instead.`);
   for (const m of text.matchAll(DESPITE)) if (once('df' + m[0].toLowerCase())) add('despite-formula', m[0], `"${m[0]}": name the problem and the result.`);
   for (const m of text.matchAll(AMBIG_DATE)) if (+m[1] <= 12 && +m[3] <= 12 && m[1] !== m[3] && once('ad' + m[0])) add('ambiguous-date', m[0], `"${m[0]}" reads two ways: write the month as a word.`);
-  // v2.2 rhetoric and rhythm, and the words a profile bans
-  rhetoricDetectors(same ? text : original.replace(/<[^>]+>/g, (t) => blank(t)), add);
+  // v2.2 rhetoric and rhythm, v2.3 arrangement and claims, and the words a profile bans
+  if (!opts.fragments) {
+    const body = same ? text : original.replace(/<[^>]+>/g, (t) => blank(t));
+    rhetoricDetectors(body, add);
+    if (same) arrangementDetectors(body, add);
+    claimDetectors(same ? raw : flat(original).replace(/<(script|style)[\s\S]*?<\/\1>/gi, blank).replace(/<a\b[^>]*>/gi, ' [^link] ').replace(/<(?!\/?h[1-6]\b)[^>]+>/g, (t) => blank(t)).replace(/<h[1-6][^>]*>/gi, (t) => `\n## ${blank(t).slice(4)}`), add);
+  }
   for (const b of opts.ban || []) {
     const re = new RegExp(`(?<![\\w-])${escapeRe(b.phrase)}(?![\\w-])`, 'gi');
     for (const m of text.matchAll(re)) { add('profile-ban', m[0], b.message || `"${m[0]}" is on this profile's banned list${b.instead ? `: ${b.instead}` : ''}.`, b.severity); break; }
@@ -1008,8 +1095,8 @@ function codeDetectors(src, file) {
 
 // ---- driver ---------------------------------------------------------------------------------
 const EXT = { '.html': 'html', '.htm': 'html', '.css': 'css', '.md': 'text', '.mdx': 'text', '.txt': 'text',
-  '.js': 'code', '.mjs': 'code', '.cjs': 'code', '.jsx': 'code', '.ts': 'code', '.tsx': 'code', '.mts': 'code', '.cts': 'code', '.py': 'code' };
-const DEFAULT_CONTEXT = { html: ['web', 'app'], css: ['web', 'app'], text: ['doc', 'copy'], code: ['code'] };
+  '.js': 'code', '.mjs': 'code', '.cjs': 'code', '.jsx': 'code', '.ts': 'code', '.tsx': 'code', '.mts': 'code', '.cts': 'code', '.py': 'code', '.svg': 'svg' };
+const DEFAULT_CONTEXT = { html: ['web', 'app'], css: ['web', 'app'], text: ['doc', 'copy'], code: ['code'], svg: ['web', 'deck', 'doc'] };
 const SCRATCH = /^(notes|plan|thoughts|ideas|scratch|temp|tmp|todo|summary|implementation[-_ ]?summary|changes[-_ ]?summary|progress)\.mdx?$/i;
 function walk(p, out = []) {
   const st = fs.statSync(p);
@@ -1041,13 +1128,17 @@ export function checkText(content, kind, file = '<input>', { context, year = new
   // Source code is checked only in the code context. In the code context, pages and stylesheets are
   // skipped, and Markdown is checked only for working notes left in the change.
   if (kind === 'code' && context && context !== 'code') return [];
+  if (kind === 'svg' && context === 'code') return [];
   if (context === 'code' && kind !== 'code') return kind === 'text' && SCRATCH.test(path.basename(file)) ? resolve([{ detector: 'scratch-file', file, line: 1, evidence: path.basename(file), message: `${path.basename(file)} looks like working notes: keep it out of the change, or fold what matters into the docs.` }], ['code']) : [];
   const dopts = { mask: profile?.mask, ban: profile?.ban };
+  if (kind === 'svg') { const t = svgText(content); return applyPolicy(resolve(textDetectors(t, file, year, t, { ...dopts, fragments: true }).filter((f) => f.detector !== 'exclaim'), context ? [context] : DEFAULT_CONTEXT.svg), { profile, genre }); }
+  // v2.3: words people read inside JSX get the prose checks, reported under the web rules
+  const ui = kind === 'code' && /\.(jsx|tsx)$/i.test(file) ? (() => { const t = jsxText(content); return /\S/.test(t) ? resolve(textDetectors(t, file, year, t, { ...dopts, fragments: true }).filter((f) => !['exclaim', 'em-dash', 'ambiguous-date', 'straight-quote'].includes(f.detector)).map((f) => ({ ...f, message: `In interface text: ${f.message}` })), ['web', 'app']) : []; })() : [];
   const raw = kind === 'code' ? codeDetectors(content, file)
     : kind === 'html' ? [...htmlDetectors(content, file, year, dopts), ...cssDetectors(htmlToCss(content), file)]
     : kind === 'css' ? cssDetectors(content, file) : textDetectors(content, file, year, content, dopts);
   if (project && (kind === 'html' || kind === 'css')) raw.push(...projectChecks([{ css: kind === 'html' ? htmlToCss(content) : content, file }]));
-  return applyPolicy(resolve(raw, context ? [context] : DEFAULT_CONTEXT[kind]), { profile, genre });
+  return applyPolicy([...resolve(raw, context ? [context] : DEFAULT_CONTEXT[kind]), ...ui], { profile, genre });
 }
 export function checkPaths(paths, opts = {}) {
   const files = paths.flatMap((p) => walk(p));
@@ -1063,10 +1154,36 @@ export function checkPaths(paths, opts = {}) {
   const styled = opts.context === 'code' ? [] : files.filter((f) => ['html', 'css'].includes(EXT[path.extname(f).toLowerCase()])).map((f) => ({ file: f, css: EXT[path.extname(f).toLowerCase()] === 'html' ? htmlToCss(fs.readFileSync(f, 'utf8')) : fs.readFileSync(f, 'utf8') }));
   if (styled.length) findings.push(...resolve(projectChecks(styled), opts.context ? [opts.context] : ['web', 'app']));
   if (opts.pairing) findings.push(...applyPolicy(resolve(checkPairing(fs.existsSync(opts.pairing) ? fs.readFileSync(opts.pairing, 'utf8') : '', opts.pairing), opts.context ? [opts.context] : ['web', 'app', 'deck', 'doc']), opts));
+  findings.push(...applyPolicy(resolve(repeatedAcrossFiles(files), opts.context ? [opts.context] : ['web', 'doc', 'copy', 'deck']), opts));
   const scored = scores.filter((x) => x.score != null);
   const words = scored.reduce((a, x) => a + x.words, 0);
   const overall = words ? Math.round(scored.reduce((a, x) => a + x.score * x.words, 0) / words) : null;
   return { files: files.length, findings, scores, score: overall };
+}
+
+// v2.3: the same sentence on three or more pages or documents. Navigation, headers, footers
+// and asides repeat by design, so they are left out.
+function repeatedAcrossFiles(files) {
+  if (files.length < 3) return [];
+  const seen = new Map();
+  for (const f of files) {
+    const kind = EXT[path.extname(f).toLowerCase()];
+    if (kind !== 'text' && kind !== 'html') continue;
+    const c = fs.readFileSync(f, 'utf8');
+    if (IGNORE_FILE.test(c.slice(0, 2000))) continue;
+    const prose = kind === 'text' ? proseParagraphs(maskProse(c)) : [stripHtml(c).replace(/<(head|nav|header|footer|aside|code|pre|script|style)\b[\s\S]*?<\/\1>/gi, blank).replace(/<\/(p|li|h[1-6]|div|td|th|dd|dt|figcaption|blockquote|section|article)>/gi, (t) => `${t}\u0000`)].flatMap((t) => t.split('\u0000').map(textOf));
+    for (const sent of new Set(prose.flatMap(sentencesOf))) {
+      if (wordCount(sent) < 8) continue;
+      const k = sent.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+      if (!seen.has(k)) seen.set(k, { sent, files: new Set() });
+      seen.get(k).files.add(f);
+    }
+  }
+  return [...seen.values()].filter((x) => x.files.size >= 3).slice(0, 10).map((x) => {
+    const [first, ...rest] = [...x.files];
+    const c = fs.readFileSync(first, 'utf8'), i = c.indexOf(x.sent.slice(0, 30));
+    return { detector: 'cross-file-repeat', file: first, line: i >= 0 ? lineAt(c, i) : 1, evidence: x.sent.slice(0, 160), message: `The same sentence appears in ${x.files.size} files (also ${rest.slice(0, 3).map((r) => path.basename(r)).join(', ')}${rest.length > 3 ? ' and more' : ''}): write it for each page, or keep it in one place.`, severity: x.files.size >= 5 ? 'medium' : 'low' };
+  });
 }
 
 // ---- v2.2: profiles, genres, hard and soft findings, the trend score ------------------------
@@ -1119,6 +1236,14 @@ export function trendScore(findings, words, minWords = 150) {
   const penalty = findings.reduce((a, f) => a + WEIGHT[f.severity], 0);
   return Math.round(100 * Math.exp(-(penalty * 1000 / Math.max(words, 400)) / 50));
 }
+// Text that is not in a file: a commit message, a pull request description, a generated reply.
+export function checkStdin(content, { kind = 'text', name = '<stdin>', ...opts } = {}) {
+  if (!['text', 'html'].includes(kind)) throw new Error(`--kind takes text or html, not "${kind}".`);
+  const findings = checkText(content, kind, name, opts);
+  const words = proseWordCount(content, kind);
+  const score = trendScore(findings, words, opts.profile?.minScoreWords);
+  return { files: 1, findings, scores: [{ file: name, words, score }], score };
+}
 export function rulesFor(context, kinds) {
   return RULES.rules.filter((r) => (!context || r.contexts.includes(context)) && (!kinds || r.check.some((k) => kinds.includes(k))));
 }
@@ -1153,10 +1278,12 @@ function cli() {
   if (args.includes('--genres')) { process.stdout.write(Object.entries(RULES.genres).map(([k, g]) => `- ${k}: ${g.label}. Off: ${g.off.join(', ') || 'none'}. Lowered: ${g.lower.join(', ') || 'none'}.`).join('\n') + '\n'); return; }
   const failOn = opt('--fail-on') || (args.includes('--strict') ? 'high' : null);
   if (failOn && !['hard', 'high', 'medium', 'low'].includes(failOn)) { console.error(`--fail-on takes hard, high, medium or low, not "${failOn}".`); process.exitCode = 2; return; }
-  const skip = new Set(['--context', '--json', '--year', '--pairing', '--profile', '--genre', '--history', '--fail-on']);
+  const skip = new Set(['--context', '--json', '--year', '--pairing', '--profile', '--genre', '--history', '--fail-on', '--kind', '--name']);
   const targets = args.filter((a, i) => !a.startsWith('--') && !skip.has(args[i - 1]));
-  if (!targets.length) { console.error('Usage: node check-slop.mjs <file or folder>... [--context web|app|deck|doc|copy|image|code] [--json out.json] [--strict]'); process.exitCode = 2; return; }
-  const res = checkPaths(targets, { context, year: +(opt('--year') || new Date().getFullYear()), pairing: opt('--pairing'), profile, genre });
+  // v2.3: --stdin checks text piped in, such as a commit message or a pull request description
+  const stdin = args.includes('--stdin') ? fs.readFileSync(0, 'utf8') : null;
+  if (!targets.length && stdin == null) { console.error('Usage: node check-slop.mjs <file or folder>... [--context web|app|deck|doc|copy|image|code] [--json out.json] [--strict]'); process.exitCode = 2; return; }
+  const res = stdin ? checkStdin(stdin, { context, year: +(opt('--year') || new Date().getFullYear()), profile, genre, kind: opt('--kind') || 'text', name: opt('--name') || '<stdin>' }) : checkPaths(targets, { context, year: +(opt('--year') || new Date().getFullYear()), pairing: opt('--pairing'), profile, genre });
   const order = { high: 0, medium: 1, low: 2 };
   res.findings.sort((a, b) => order[a.severity] - order[b.severity] || a.file.localeCompare(b.file) || a.line - b.line);
   const counts = { high: 0, medium: 0, low: 0 };

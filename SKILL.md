@@ -12,7 +12,7 @@ One set of anti-slop rules, split by context, with a checker for the rules a mac
 | File | What it is |
 |---|---|
 | `rules.json` | The rules. Each has an id, the pattern to avoid (`dont`), what to do instead, the contexts it applies to, how to check it (machine, screenshot, judgement), a severity, and a detector name when the checker can find it. Change rules here and nowhere else. |
-| `check-slop.mjs` | The checker. It reads HTML, CSS, Markdown, plain text, and JavaScript, TypeScript and Python source. No dependencies. |
+| `check-slop.mjs` | The checker. It reads HTML, CSS, SVG, Markdown, plain text, and JavaScript, TypeScript and Python source, or text piped in with `--stdin`. No dependencies. |
 | `RULES.md` | The rules listed per context. Generated: `node check-slop.mjs --rules-md > RULES.md`. |
 | `profiles/` | Example profiles and the profile reference. |
 | `tests/` | Planted problems, clean samples and the public-domain false-alarm set. Run `node --test tests/check-slop.test.mjs`. |
@@ -76,6 +76,7 @@ Every rule is also **hard** or **soft**. Hard rules are wrong in any voice or br
 - **Genre** (`--genre social|email|docs|legal|clinical|academic|fiction|speech`): relaxes soft rules that do not fit the kind of writing, such as hedges in legal text or repetition in a speech. `--genres` lists what each one changes.
 - **Profile** (`--profile file.json`): an optional file that tunes the checker for a team, brand or writer. It can switch rules off, change severities, allow words and ban others. Hard rules stay on unless it sets `allowHardOff`. With no profile, the neutral defaults apply. Keys and generic examples: `profiles/README.md`. A profile made for one person stays in their private files, never in this repo.
 - **Trend score**: files of prose with 150 words or more get a 0–100 score. Use it to compare drafts of the same piece (`--history scores.jsonl` records runs). It is not a grade and not a comparison between writers.
+- **Beyond single words** (v2.3): endings that restate the opening, "preview, body, recap" structure, superlatives and figures with no source, the same sentence on three or more pages of a folder, and the prose checks on alt text, meta descriptions, SVG text, JSX text and `--stdin` input (commit messages, pull request descriptions).
 - **Skipped text**: quotes, code, blockquotes and links are left out of the prose checks, and words used in their literal sense are kept ("elevated blood pressure"). Mark other regions with `<!-- slop-guard: off -->` and `<!-- slop-guard: on -->`.
 
 ## How it relates to other skills

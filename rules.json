@@ -1,5 +1,5 @@
 {
-  "version": "2.2.0",
+  "version": "2.3.0",
   "updated": "2026-11-24",
   "about": "Anti-slop rules for AI-made work, by context. They are design and writing preferences, not a test of who or what made something: judge the result, never guess the author. The rules draw on several sources (see Sources in SKILL.md and NOTICE). 'dont' is the pattern; 'instead' is what to do.",
   "contexts": {
@@ -2967,6 +2967,74 @@
         "machine"
       ],
       "detector": "profile-ban",
+      "severity": "medium",
+      "kind": "soft"
+    },
+    {
+      "id": "recap-endings",
+      "dont": "An ending that restates the opening: the last paragraph says again what the first one said.",
+      "instead": "End on something new: the decision, the next step, the open question or the cost.",
+      "contexts": [
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "recap-ending",
+      "severity": "low",
+      "kind": "soft"
+    },
+    {
+      "id": "signposted-structure",
+      "dont": "Say what you will say, say it, then say what you said: an introduction that lists every section and an ending that repeats it.",
+      "instead": "Open on the point, let headings carry the structure, and say each thing once.",
+      "contexts": [
+        "deck",
+        "doc"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "preview-recap",
+      "severity": "medium",
+      "kind": "soft"
+    },
+    {
+      "id": "repeated-across-files",
+      "dont": "The same sentence on three or more pages or documents (navigation, headers and footers aside).",
+      "instead": "Write each page for its own reader, or keep the shared text in one place and link to it.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "cross-file-repeat",
+      "severity": "low",
+      "kind": "soft"
+    },
+    {
+      "id": "unsourced-claims",
+      "dont": "Superlatives, proof words and figures with no source: \"the fastest platform\", \"proven to\", \"40% faster\".",
+      "instead": "Name who measured it and when, link the source, or drop the claim.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "unsourced-claim",
       "severity": "medium",
       "kind": "soft"
     }

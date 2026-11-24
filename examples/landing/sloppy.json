@@ -1,12 +1,12 @@
 {
-  "version": "2.2.0",
+  "version": "2.3.0",
   "context": "web",
   "genre": null,
   "profile": null,
   "counts": {
     "high": 4,
     "medium": 54,
-    "low": 19,
+    "low": 20,
     "hard": 16
   },
   "files": 1,
@@ -824,6 +824,17 @@
       "evidence": "class=\"counter",
       "message": "Numbers that count up on scroll: show the figure plainly, and only if it is real and sourced.",
       "instead": "Leave them out until real ones exist, or show real product proof and only real relevant metrics."
+    },
+    {
+      "rule": "unsourced-claims",
+      "detector": "unsourced-claim",
+      "severity": "low",
+      "kind": "soft",
+      "file": "sloppy.html",
+      "line": 64,
+      "evidence": "99.9%",
+      "message": "1 figure such as \"99.9%\" with no source in the sentence or the next: link or name the source, or add a Sources section.",
+      "instead": "Name who measured it and when, link the source, or drop the claim."
     },
     {
       "rule": "placeholder-content",
