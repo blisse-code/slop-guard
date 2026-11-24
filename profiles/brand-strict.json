@@ -1,0 +1,11 @@
+{
+  "name": "brand-strict",
+  "description": "A house style for marketing copy that bans dashes and exclamation marks outright and keeps a short banned-word list. Copy it and replace the list with your own.",
+  "genre": "social",
+  "severity": { "em-dashes": "medium", "exclamations": "medium", "straight-quotes": "medium" },
+  "ban": [
+    { "phrase": "world-class", "instead": "name the evidence" },
+    { "phrase": "solutions", "instead": "name the product" },
+    { "phrase": "journey", "instead": "say what happens and when" }
+  ]
+}

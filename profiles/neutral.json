@@ -1,0 +1,4 @@
+{
+  "name": "neutral",
+  "description": "The defaults, written out. Using this profile is the same as using none: every rule on, at the severity rules.json gives it, with quotes, code, blockquotes and links left out of the prose checks."
+}

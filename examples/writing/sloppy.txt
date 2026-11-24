@@ -61,4 +61,4 @@ LOW    ing-riders           sloppy.md:10  ", fostering ..." claims a meaning the
 LOW    decorative-headings  sloppy.md:15  Heading that could sit over any section: say what this one shows.
        Final Thoughts
 
-slop-guard: 1 file(s), 31 finding(s): 0 high, 16 medium, 15 low (context: copy). Hits are evidence for a reviewer, not a verdict.
+slop-guard: 1 file(s), 31 finding(s): 0 high, 16 medium, 15 low; 0 hard (context: copy). Hits are evidence for a reviewer, not a verdict.

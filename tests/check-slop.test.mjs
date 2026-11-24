@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
-import { checkText, checkPairing, typeChecks, contrast, RULES, rulesFor } from '../check-slop.mjs';
+import { checkText, checkPaths, checkPairing, typeChecks, contrast, RULES, rulesFor, maskProse, loadProfile, applyPolicy, trendScore, proseWordCount } from '../check-slop.mjs';
 
 const F = (n) => fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', n), 'utf8');
 const rulesHit = (fs_) => new Set(fs_.map((f) => f.rule));
@@ -342,4 +342,118 @@ test('RULES.md matches rules.json, and piped CLI output is complete', () => {
   const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
   const out = execFileSync(process.execPath, [path.join(root, 'check-slop.mjs'), '--rules-md'], { encoding: 'utf8', maxBuffer: 1 << 24 });
   assert.equal(out, fs.readFileSync(path.join(root, 'RULES.md'), 'utf8'));
+});
+
+// ---- v2.2: masking, literal sense, rhetoric and rhythm, genres, profiles, hard and soft, score ----
+const tmp = (name, content) => { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'slop-guard-')); const f = path.join(d, name); fs.writeFileSync(f, content); return f; };
+const PD = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'public-domain');
+
+test('v2.2 masking: quotes, code, blockquotes and marked regions are not checked as prose', () => {
+  assert.equal(maskProse('a `seamless` b').length, 'a `seamless` b'.length);
+  quiet('The brief said "unlock your potential" and we refused it.', 'text', 'copy', 'hype-copy');
+  quiet("Avoid lines like 'the future looks bright' in reports.", 'text', 'doc', 'generic-endings');
+  quiet('> Studies show this is seamless.\n\nWe disagree.', 'text', 'doc', 'vague-authority');
+  quiet('Run:\n\n```\nnpm run seamless\n```\n', 'text', 'doc', 'hype-copy');
+  quiet('<p>Use <code>elevate()</code> to raise the card.</p>', 'html', 'web', 'hype-copy');
+  quiet('<!-- slop-guard: off -->\nSeamless, elevated, revolutionary.\n<!-- slop-guard: on -->\nPlain text.', 'text', 'copy', 'hype-copy');
+  assert.deepEqual(checkText('<!-- slop-guard: ignore-file -->\nUnlock your potential!', 'text', 'x.md', { context: 'copy' }), []);
+  plant('It’s seamless and it’s quick to set up.', 'text', 'copy', 'hype-copy');
+  plant('It\'s a seamless setup for everyone.', 'text', 'copy', 'hype-copy');
+});
+test('v2.2 literal-sense guards clear literal uses and keep the metaphors', () => {
+  quiet('Enter the company name exactly as it appears on the invoice.', 'text', 'doc', 'placeholder-content');
+  plant('Welcome to Company Name, the home of great tools.', 'text', 'copy', 'placeholder-content');
+  quiet('Contoso is a pseudonym for the client, used with their permission.', 'text', 'doc', 'placeholder-content');
+  plant('Our partners include Contoso and Fabrikam.', 'text', 'doc', 'placeholder-content');
+  quiet('Patients with elevated blood pressure were excluded.', 'text', 'doc', 'hype-copy');
+  plant('We elevate your brand with every post.', 'text', 'copy', 'hype-copy');
+  quiet('The pipes are seamless steel tubes rated to 300 bar.', 'text', 'doc', 'hype-copy');
+  quiet('The flywheel stores energy from the engine between strokes.', 'text', 'doc', 'plain-words');
+  plant('Referrals are our growth flywheel.', 'text', 'copy', 'plain-words');
+  quiet('Studies show a 12% drop in readmissions (Lee et al., 2021).', 'text', 'doc', 'vague-authority');
+  plant('Studies show that people prefer shorter forms.', 'text', 'doc', 'vague-authority');
+  quiet('The French Revolution reshaped land ownership.', 'text', 'doc', 'hype-copy');
+});
+test('v2.2 rhetoric and rhythm detectors', () => {
+  plant('It is a system, not a tool. It is a partner, not a vendor. It is a habit, not a hack. We built it slowly.', 'text', 'copy', 'not-slogans');
+  quiet('Send the form to the clinic, not the hospital.', 'text', 'copy', 'not-slogans');
+  plant("Here's the thing: most teams skip the brief.", 'text', 'copy', 'colon-reveals');
+  quiet('The thing to check first is the brief.', 'text', 'copy', 'colon-reveals');
+  plant('Ever wondered why meetings run long?\n\nThey have no agenda.', 'text', 'copy', 'hook-formulas');
+  quiet('Meetings run long when they have no agenda.', 'text', 'copy', 'hook-formulas');
+  plant('The result? A faster team. The cost? Almost nothing. We shipped it in May.', 'text', 'copy', 'self-answered-questions');
+  quiet('What changed in May? We moved the review to Tuesdays, which gave the team two clear days to fix what it found.', 'text', 'copy', 'self-answered-questions');
+  plant(['We shipped it.', 'Nobody noticed.', 'Then the numbers moved.', 'The team met on Monday to look at what had changed and why it had taken so long to show up in the weekly report.', 'Speed matters.', 'Ship it.'].join('\n\n'), 'text', 'copy', 'punch-paragraphs');
+  plant('We kept the weekly review board. The weekly review board met on Monday. Nobody missed the weekly review board. Then the weekly review board stopped.', 'text', 'doc', 'repeated-phrases');
+  quiet(fs.readFileSync(path.join(PD, 'dickens.txt'), 'utf8'), 'text', 'doc', 'repeated-phrases');
+  const even = Array.from({ length: 14 }, (_, i) => `The ${['team', 'group', 'crew', 'staff'][i % 4]} reviewed the plan for the new branch on day ${i + 1}.`).join(' ');
+  plant(even, 'text', 'doc', 'uniform-rhythm');
+  plant('It is fast, simple and secure. Teams find it clear, calm and useful. Setup is quick, cheap and easy. Support is kind, quick and human.', 'text', 'copy', 'rule-of-three');
+  quiet('Bring a drill, a level and a tape measure.', 'text', 'copy', 'rule-of-three');
+});
+test('v2.2 false-alarm set: public-domain prose raises nothing at medium or above, and no hard finding', () => {
+  for (const f of fs.readdirSync(PD).filter((x) => x.endsWith('.txt'))) for (const context of ['doc', 'copy']) {
+    const found = checkText(fs.readFileSync(path.join(PD, f), 'utf8'), 'text', f, { context, year: 2026 });
+    assert.deepEqual(found.filter((x) => x.kind === 'hard' || x.severity !== 'low').map((x) => `${x.rule}: ${x.evidence}`), [], `${f} (${context})`);
+  }
+});
+test('v2.2 every rule is hard or soft, every high rule is hard, and genres name real rules', () => {
+  for (const r of RULES.rules) { assert.ok(['hard', 'soft'].includes(r.kind), r.id); if (r.severity === 'high') assert.equal(r.kind, 'hard', r.id); }
+  const ids = new Set(RULES.rules.map((r) => r.id));
+  for (const [g, v] of Object.entries(RULES.genres)) for (const id of [...v.off, ...v.lower]) assert.ok(ids.has(id), `${g}: ${id}`);
+});
+test('v2.2 genres: allowances switch soft rules off or lower them, never hard ones', () => {
+  const t = 'This is arguably the right term, to some extent, in many ways. Enter {{client_name}} here.';
+  const plain = rulesHit(checkText(t, 'text', 'x.md', { context: 'doc' }));
+  const legal = rulesHit(checkText(t, 'text', 'x.md', { context: 'doc', genre: 'legal' }));
+  assert.ok(plain.has('hedge-stacks') && !legal.has('hedge-stacks'));
+  assert.ok(legal.has('placeholder-content'), 'a genre must not hide a hard finding');
+  const lowered = checkText('We utilize volunteers.', 'text', 'x.md', { context: 'doc', genre: 'clinical' }).find((x) => x.rule === 'plain-words');
+  assert.equal(lowered.severity, 'low');
+});
+test('v2.2 profiles: off, severity, allow and ban; hard rules need allowHardOff; bad profiles fail clearly', () => {
+  const f = tmp('p.json', JSON.stringify({ name: 'house', off: ['exclamations', 'placeholder-content'], severity: { 'hype-copy': 'low' }, allow: ['Contoso'], ban: [{ phrase: 'synergy', instead: 'say who works with whom' }, 'circle back'] }));
+  const profile = loadProfile(f);
+  const found = checkText('We launched! It is seamless! Contoso joined. Let us circle back on synergy. Hi {{name}}.', 'text', 'x.md', { context: 'copy', profile });
+  const ids = rulesHit(found);
+  assert.ok(!ids.has('exclamations'));
+  assert.ok(ids.has('placeholder-content'), 'hard rule stays on without allowHardOff');
+  assert.ok(!found.some((x) => /Contoso/.test(x.evidence)));
+  assert.equal(found.find((x) => x.rule === 'hype-copy').severity, 'low');
+  assert.equal(found.filter((x) => x.rule === 'profile-words').length, 2);
+  assert.match(found.find((x) => x.rule === 'profile-words' && x.evidence === 'synergy').message, /say who works with whom/);
+  const loose = loadProfile(tmp('q.json', JSON.stringify({ off: ['placeholder-content'], allowHardOff: true })));
+  assert.ok(!rulesHit(checkText('Hi {{name}}.', 'text', 'x.md', { context: 'copy', profile: loose })).has('placeholder-content'));
+  assert.throws(() => loadProfile(tmp('r.json', '{"offf": []}')), /unknown key offf/);
+  assert.throws(() => loadProfile(tmp('s.json', '{"off": ["no-such-rule"]}')), /"no-such-rule", which does not exist/);
+  assert.throws(() => loadProfile(tmp('t.json', '{"genre": "poetry"}')), /unknown genre "poetry"/);
+  for (const ex of fs.readdirSync(path.join(PD, '..', '..', '..', 'profiles')).filter((x) => x.endsWith('.json'))) loadProfile(path.join(PD, '..', '..', '..', 'profiles', ex));
+});
+test('v2.2 trend score: skips short texts, drops as findings pile up, and the CLI reports and records it', () => {
+  assert.equal(trendScore([{ severity: 'high' }], 100), null);
+  assert.equal(trendScore([], 600), 100);
+  assert.ok(trendScore([{ severity: 'medium' }], 600) > trendScore([{ severity: 'medium' }, { severity: 'high' }], 600));
+  assert.ok(proseWordCount('# Title\n\nOne two three.\n\n```\nnot prose here\n```', 'text') === 3);
+  const walden = fs.readFileSync(path.join(PD, 'walden.txt'), 'utf8');
+  const r = checkPaths([tmp('walden.md', walden)], { context: 'doc' });
+  assert.equal(r.scores.length, 1); assert.ok(r.score >= 90, `score ${r.score}`);
+  const hist = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'slop-guard-h-')), 'h.jsonl');
+  const file = tmp('post.md', `${walden}\n\nUnlock your potential with our seamless, revolutionary platform!`);
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const run = () => execFileSync(process.execPath, [path.join(root, 'check-slop.mjs'), file, '--context', 'copy', '--history', hist], { encoding: 'utf8' });
+  assert.match(run(), /Trend score: \d+\/100\./);
+  assert.match(run(), /\(\+0 since last run\)/);
+  assert.equal(fs.readFileSync(hist, 'utf8').trim().split('\n').length, 2);
+});
+test('v2.2 CLI: --fail-on hard and --genre, with unknown values refused', () => {
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const cli = (...a) => { try { return { code: 0, out: execFileSync(process.execPath, [path.join(root, 'check-slop.mjs'), ...a], { encoding: 'utf8', stdio: 'pipe' }) }; } catch (e) { return { code: e.status, out: e.stdout + e.stderr }; } };
+  const soft = tmp('soft.md', 'It is seamless.');
+  const hard = tmp('hard.md', 'Dear {{first_name}}, welcome.');
+  assert.equal(cli(soft, '--context', 'copy', '--fail-on', 'hard').code, 0);
+  assert.equal(cli(soft, '--context', 'copy', '--fail-on', 'medium').code, 1);
+  assert.equal(cli(hard, '--context', 'copy', '--fail-on', 'hard').code, 1);
+  assert.match(cli(soft, '--genre', 'poetry').out, /Unknown genre "poetry"/);
+  assert.match(cli(soft, '--fail-on', 'sometimes').out, /--fail-on takes hard, high, medium or low/);
+  assert.match(cli('--genres').out, /legal: Contracts/);
 });

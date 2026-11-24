@@ -1,10 +1,10 @@
-HIGH   tiny-text            sloppy.html:30  Text at 10px: below the 11px floor for any label or control.
+HIGH   tiny-text            sloppy.html:30  Text at 10px: below the 11px floor for any label or control. [hard]
        .stats small { font-size: 10px }
-HIGH   placeholder-content  sloppy.html:69  Placeholder content "Acme Inc".
+HIGH   placeholder-content  sloppy.html:69  Placeholder content "Acme Inc". [hard]
        Acme Inc
-HIGH   placeholder-labels   sloppy.html:77  Field whose only label is its placeholder.
+HIGH   placeholder-labels   sloppy.html:77  Field whose only label is its placeholder. [hard]
        <input type="email" placeholder="you@example.com">
-HIGH   placeholder-content  sloppy.html:79  Copyright year 2023 is out of date.
+HIGH   placeholder-content  sloppy.html:79  Copyright year 2023 is out of date. [hard]
        © 2023
 MEDIUM page-basics          sloppy.html:1  The page has no viewport, description, og:image, favicon.
        missing: viewport, description, og:image, favicon
@@ -48,11 +48,11 @@ MEDIUM gradient-hero        sloppy.html:34  Indigo/violet gradient: the default 
        .chat-bubble { background: linear-gradient(135deg,#6366f1,#ec4899) }
 MEDIUM floating-widgets     sloppy.html:34  Floating widget following the reader: keep only the navigation fixed.
        .chat-bubble { position: fixed }
-MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something. [hard]
        <a href="#">
-MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something. [hard]
        <a href="#">
-MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+MEDIUM dead-controls        sloppy.html:43  A link to "#" goes nowhere: link it to a real page or make it a button that does something. [hard]
        <a class="cta" href="#">
 MEDIUM eyebrow-label        sloppy.html:46  Small label on its own line above a heading: banned outright.
        ✨ New: AI-powered lending <h1
@@ -74,9 +74,9 @@ MEDIUM stock-lines          sloppy.html:48  "at your fingertips" fits any busine
        at your fingertips
 MEDIUM stock-lines          sloppy.html:48  "in just a few clicks" fits any business: say what this one does, for whom.
        in just a few clicks
-MEDIUM dead-controls        sloppy.html:49  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+MEDIUM dead-controls        sloppy.html:49  A link to "#" goes nowhere: link it to a real page or make it a button that does something. [hard]
        <a class="cta" href="#">
-MEDIUM dead-controls        sloppy.html:49  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+MEDIUM dead-controls        sloppy.html:49  A link to "#" goes nowhere: link it to a real page or make it a button that does something. [hard]
        <a class="ghost" href="#">
 MEDIUM auto-advancing       sloppy.html:52  Carousel, slider or tilt effect: show items whole and let people move them.
        class="ticker"
@@ -98,15 +98,15 @@ MEDIUM auto-tile-grid       sloppy.html:58  Rounded icon tile stacked above a he
        icon-box
 MEDIUM auto-tile-grid       sloppy.html:59  Rounded icon tile stacked above a heading.
        icon-box
-MEDIUM fake-proof           sloppy.html:68  Quote attributed to "Sarah J.": use a real, named person with permission, or leave it out.
+MEDIUM fake-proof           sloppy.html:68  Quote attributed to "Sarah J.": use a real, named person with permission, or leave it out. [hard]
        — Sarah J.
-MEDIUM fake-logos           sloppy.html:69  "Trusted by" strip: only real clients with official logo files.
+MEDIUM fake-logos           sloppy.html:69  "Trusted by" strip: only real clients with official logo files. [hard]
        Trusted by
-MEDIUM dead-controls        sloppy.html:72  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+MEDIUM dead-controls        sloppy.html:72  A link to "#" goes nowhere: link it to a real page or make it a button that does something. [hard]
        <a class="cta" href="#">
-MEDIUM dead-controls        sloppy.html:73  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+MEDIUM dead-controls        sloppy.html:73  A link to "#" goes nowhere: link it to a real page or make it a button that does something. [hard]
        <a class="cta" href="#">
-MEDIUM dead-controls        sloppy.html:74  A link to "#" goes nowhere: link it to a real page or make it a button that does something.
+MEDIUM dead-controls        sloppy.html:74  A link to "#" goes nowhere: link it to a real page or make it a button that does something. [hard]
        <a class="cta" href="#">
 MEDIUM vague-controls       sloppy.html:77  "Submit" does not say what happens: name the action and its object.
        <button>Submit</button>
@@ -144,13 +144,14 @@ LOW    ing-riders           sloppy.html:59  ", highlighting ..." claims a meanin
        highlighting the tools that matter most to you today
 LOW    virtue-words         sloppy.html:59  "genuinely understands": show it with a fact rather than announcing it.
        genuinely understands
-LOW    fake-proof           sloppy.html:63  Numbers that count up on scroll: show the figure plainly, and only if it is real and sourced.
+LOW    fake-proof           sloppy.html:63  Numbers that count up on scroll: show the figure plainly, and only if it is real and sourced. [hard]
        class="counter
-LOW    placeholder-content  sloppy.html:69  "Northwind" is a stock sample company name: use the real one or leave it out.
+LOW    placeholder-content  sloppy.html:69  "Northwind" is a stock sample company name: use the real one or leave it out. [hard]
        Northwind
 LOW    fake-discount        sloppy.html:73  Struck-through price: show a discount only for a real, time-limited offer.
        <s>$
 LOW    most-popular         sloppy.html:73  "Most popular": keep only if it is actually the plan most people pick.
        Most popular
 
-slop-guard: 1 file(s), 77 finding(s): 4 high, 54 medium, 19 low (context: web). Hits are evidence for a reviewer, not a verdict.
+slop-guard: 1 file(s), 77 finding(s): 4 high, 54 medium, 19 low; 16 hard (context: web). Hits are evidence for a reviewer, not a verdict.
+Trend score: 0/100. Use it to compare versions of the same work over time; it is not a grade.

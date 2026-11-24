@@ -1,0 +1,7 @@
+{
+  "name": "technical-docs",
+  "description": "READMEs, API references and help pages: the docs genre, plus a few words engineers use in their exact sense.",
+  "genre": "docs",
+  "allow": ["leverage", "substrate", "facilitate"],
+  "severity": { "exclamations": "medium" }
+}

@@ -1,6 +1,7 @@
+<!-- slop-guard: ignore-file (this file lists the patterns themselves) -->
 # slop-guard rules by context
 
-Generated from `rules.json` v2.1.0 by `node check-slop.mjs --rules-md`. Do not edit by hand. 169 rules. These are design and writing preferences, not a test of who or what made something.
+Generated from `rules.json` v2.2.0 by `node check-slop.mjs --rules-md`. Do not edit by hand. 178 rules. These are design and writing preferences, not a test of who or what made something.
 
 ## web: Websites and landing pages
 
@@ -145,6 +146,14 @@ Generated from `rules.json` v2.1.0 by `node check-slop.mjs --rules-md`. Do not e
 | ai-disclosure | A bot presented as a person: a human name and photo with no sign the replies are automated. | Say plainly that the replies come from an AI model, and offer a way to reach a person. | judgement | medium |
 | ambiguous-dates | Dates that read two ways, like 03/04/2026. | Write the month as a word (3 April 2026), or use ISO dates (2026-04-03) in data. | machine | low |
 | straight-quotes | Straight quote marks and apostrophes (' and ") in text people read on a page, slide or document. | Use curly quotes and apostrophes in visible text. Keep straight quotes in code, Markdown source, commands and attributes. | machine, judgement | low |
+| not-slogans | Sentence after sentence ends on a contrast: "a system, not a tool", "a partner, not a vendor". | Say what the thing is. Keep a contrast only where a reader would really confuse the two. | machine, judgement | medium |
+| colon-reveals | Setting up a reveal with a colon: "Here's the thing:", "The truth is:", "The lesson:". | Put the point in the sentence itself. | machine | low |
+| hook-formulas | Opening on a stock hook: "Ever wondered...", "What if I told you...", "Picture this", "Unpopular opinion:". | Open on the specific thing: the number, the scene, the decision. | machine | medium |
+| self-answered-questions | Short questions the writer answers at once, again and again: "The result? A faster team." | Make the statement. Keep a question only when the reader would really ask it. | machine | low |
+| repeated-phrases | The same four-word phrase used four or more times in one piece. | Say it once where it matters, then refer back plainly or vary the wording. | machine | medium |
+| uniform-rhythm | Sentences or paragraphs that are all about the same length, so the text reads like a metronome. | Let length follow the thought: a long sentence that reasons, a short one that lands. | machine, judgement | low |
+| rule-of-three | Lists of exactly three, over and over: "fast, simple and secure". | Keep the threes that are real. Name two, or four, when that is the truth. | machine, judgement | low |
+| profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
 
 **Before you say it's done:**
 - [ ] On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).
@@ -263,6 +272,7 @@ Generated from `rules.json` v2.1.0 by `node check-slop.mjs --rules-md`. Do not e
 | ai-disclosure | A bot presented as a person: a human name and photo with no sign the replies are automated. | Say plainly that the replies come from an AI model, and offer a way to reach a person. | judgement | medium |
 | ambiguous-dates | Dates that read two ways, like 03/04/2026. | Write the month as a word (3 April 2026), or use ISO dates (2026-04-03) in data. | machine | low |
 | straight-quotes | Straight quote marks and apostrophes (' and ") in text people read on a page, slide or document. | Use curly quotes and apostrophes in visible text. Keep straight quotes in code, Markdown source, commands and attributes. | machine, judgement | low |
+| profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
 
 **Before you say it's done:**
 - [ ] On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).
@@ -378,6 +388,15 @@ Generated from `rules.json` v2.1.0 by `node check-slop.mjs --rules-md`. Do not e
 | colour-only-status | Status, errors or chart series told apart by colour alone: a red border, a green dot, a red line beside a green one. | Pair colour with a word, an icon or a shape. | screenshot, judgement | medium |
 | ambiguous-dates | Dates that read two ways, like 03/04/2026. | Write the month as a word (3 April 2026), or use ISO dates (2026-04-03) in data. | machine | low |
 | straight-quotes | Straight quote marks and apostrophes (' and ") in text people read on a page, slide or document. | Use curly quotes and apostrophes in visible text. Keep straight quotes in code, Markdown source, commands and attributes. | machine, judgement | low |
+| not-slogans | Sentence after sentence ends on a contrast: "a system, not a tool", "a partner, not a vendor". | Say what the thing is. Keep a contrast only where a reader would really confuse the two. | machine, judgement | medium |
+| colon-reveals | Setting up a reveal with a colon: "Here's the thing:", "The truth is:", "The lesson:". | Put the point in the sentence itself. | machine | low |
+| hook-formulas | Opening on a stock hook: "Ever wondered...", "What if I told you...", "Picture this", "Unpopular opinion:". | Open on the specific thing: the number, the scene, the decision. | machine | medium |
+| self-answered-questions | Short questions the writer answers at once, again and again: "The result? A faster team." | Make the statement. Keep a question only when the reader would really ask it. | machine | low |
+| punch-paragraphs | Many one-line paragraphs of a few words, each landing like a punchline. | Fold most of them into the argument; keep one where the weight is earned. | machine, judgement | low |
+| repeated-phrases | The same four-word phrase used four or more times in one piece. | Say it once where it matters, then refer back plainly or vary the wording. | machine | medium |
+| uniform-rhythm | Sentences or paragraphs that are all about the same length, so the text reads like a metronome. | Let length follow the thought: a long sentence that reasons, a short one that lands. | machine, judgement | low |
+| rule-of-three | Lists of exactly three, over and over: "fast, simple and secure". | Keep the threes that are real. Name two, or four, when that is the truth. | machine, judgement | low |
+| profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
 
 **Before you say it's done:**
 - [ ] On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).
@@ -448,6 +467,15 @@ Generated from `rules.json` v2.1.0 by `node check-slop.mjs --rules-md`. Do not e
 | colour-only-status | Status, errors or chart series told apart by colour alone: a red border, a green dot, a red line beside a green one. | Pair colour with a word, an icon or a shape. | screenshot, judgement | medium |
 | ambiguous-dates | Dates that read two ways, like 03/04/2026. | Write the month as a word (3 April 2026), or use ISO dates (2026-04-03) in data. | machine | low |
 | straight-quotes | Straight quote marks and apostrophes (' and ") in text people read on a page, slide or document. | Use curly quotes and apostrophes in visible text. Keep straight quotes in code, Markdown source, commands and attributes. | machine, judgement | low |
+| not-slogans | Sentence after sentence ends on a contrast: "a system, not a tool", "a partner, not a vendor". | Say what the thing is. Keep a contrast only where a reader would really confuse the two. | machine, judgement | medium |
+| colon-reveals | Setting up a reveal with a colon: "Here's the thing:", "The truth is:", "The lesson:". | Put the point in the sentence itself. | machine | low |
+| hook-formulas | Opening on a stock hook: "Ever wondered...", "What if I told you...", "Picture this", "Unpopular opinion:". | Open on the specific thing: the number, the scene, the decision. | machine | medium |
+| self-answered-questions | Short questions the writer answers at once, again and again: "The result? A faster team." | Make the statement. Keep a question only when the reader would really ask it. | machine | low |
+| punch-paragraphs | Many one-line paragraphs of a few words, each landing like a punchline. | Fold most of them into the argument; keep one where the weight is earned. | machine, judgement | low |
+| repeated-phrases | The same four-word phrase used four or more times in one piece. | Say it once where it matters, then refer back plainly or vary the wording. | machine | medium |
+| uniform-rhythm | Sentences or paragraphs that are all about the same length, so the text reads like a metronome. | Let length follow the thought: a long sentence that reasons, a short one that lands. | machine, judgement | low |
+| rule-of-three | Lists of exactly three, over and over: "fast, simple and secure". | Keep the threes that are real. Name two, or four, when that is the truth. | machine, judgement | low |
+| profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
 
 **Before you say it's done:**
 - [ ] At first glance: someone can tell what the page is for and what to click within five seconds.
@@ -501,6 +529,15 @@ Generated from `rules.json` v2.1.0 by `node check-slop.mjs --rules-md`. Do not e
 | formulaic-challenges | The challenge formula: 'Despite these challenges, it continues to thrive.' | Name the actual problem and the actual result, with numbers if you have them. | machine | low |
 | ai-disclosure | A bot presented as a person: a human name and photo with no sign the replies are automated. | Say plainly that the replies come from an AI model, and offer a way to reach a person. | judgement | medium |
 | straight-quotes | Straight quote marks and apostrophes (' and ") in text people read on a page, slide or document. | Use curly quotes and apostrophes in visible text. Keep straight quotes in code, Markdown source, commands and attributes. | machine, judgement | low |
+| not-slogans | Sentence after sentence ends on a contrast: "a system, not a tool", "a partner, not a vendor". | Say what the thing is. Keep a contrast only where a reader would really confuse the two. | machine, judgement | medium |
+| colon-reveals | Setting up a reveal with a colon: "Here's the thing:", "The truth is:", "The lesson:". | Put the point in the sentence itself. | machine | low |
+| hook-formulas | Opening on a stock hook: "Ever wondered...", "What if I told you...", "Picture this", "Unpopular opinion:". | Open on the specific thing: the number, the scene, the decision. | machine | medium |
+| self-answered-questions | Short questions the writer answers at once, again and again: "The result? A faster team." | Make the statement. Keep a question only when the reader would really ask it. | machine | low |
+| punch-paragraphs | Many one-line paragraphs of a few words, each landing like a punchline. | Fold most of them into the argument; keep one where the weight is earned. | machine, judgement | low |
+| repeated-phrases | The same four-word phrase used four or more times in one piece. | Say it once where it matters, then refer back plainly or vary the wording. | machine | medium |
+| uniform-rhythm | Sentences or paragraphs that are all about the same length, so the text reads like a metronome. | Let length follow the thought: a long sentence that reasons, a short one that lands. | machine, judgement | low |
+| rule-of-three | Lists of exactly three, over and over: "fast, simple and secure". | Keep the threes that are real. Name two, or four, when that is the truth. | machine, judgement | low |
+| profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
 
 **Before you say it's done:**
 - [ ] At first glance: someone can tell what the page is for and what to click within five seconds.

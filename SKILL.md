@@ -14,7 +14,8 @@ One set of anti-slop rules, split by context, with a checker for the rules a mac
 | `rules.json` | The rules. Each has an id, the pattern to avoid (`dont`), what to do instead, the contexts it applies to, how to check it (machine, screenshot, judgement), a severity, and a detector name when the checker can find it. Change rules here and nowhere else. |
 | `check-slop.mjs` | The checker. It reads HTML, CSS, Markdown, plain text, and JavaScript, TypeScript and Python source. No dependencies. |
 | `RULES.md` | The rules listed per context. Generated: `node check-slop.mjs --rules-md > RULES.md`. |
-| `tests/` | Planted problems and clean samples. Run `node --test tests/check-slop.test.mjs`. |
+| `profiles/` | Example profiles and the profile reference. |
+| `tests/` | Planted problems, clean samples and the public-domain false-alarm set. Run `node --test tests/check-slop.test.mjs`. |
 | `examples/` | A sloppy and a clean landing page, dashboard, post and JavaScript file, with the checker's output (and screenshots for the pages). |
 
 ## Which rules apply where
@@ -24,8 +25,8 @@ One set of anti-slop rules, split by context, with a checker for the rules a mac
 | `web` | Websites, landing pages, portfolios | CSS and HTML patterns, page basics, copy tells, dead links, unlabelled fields, blocked zoom, small tap targets, straight quotes in visible text | Layout rhythm, the stock landing page, imagery, icons, colour balance |
 | `app` | App and dashboard UI, HTML prototypes | CSS and HTML patterns, controls with no name, vague button labels, field types, charts with no text, hover-only actions, generic error copy | Repeated cards, filler charts, status chips that never change, missing states, form errors, action feedback |
 | `deck` | Decks and slides | Copy tells in exported text; CSS patterns in HTML decks | Everything centred, tile grids, stock faces, type hierarchy |
-| `doc` | Research reports, briefs, write-ups | Hype and filler words, placeholders, made-up proof, nameless authority, hedging, emoji and code-style headings, cutoff disclaimers, stock endings, bold sprinkled through paragraphs | Filler charts, heading order, line length, invented details, one thing called by many names |
-| `copy` | Social posts, captions, emails, ads | Hype words, stock lines, engagement bait, canned courtesies, exclamation marks | Claims about what it does and for whom; the same voice for every client |
+| `doc` | Research reports, briefs, write-ups | Hype and filler words, rhetorical habits (", not ..." slogans, colon reveals, self-answered questions, repeated phrases, sentences of one length), placeholders, made-up proof, nameless authority, hedging, emoji and code-style headings, cutoff disclaimers, stock endings, bold sprinkled through paragraphs | Filler charts, heading order, line length, invented details, one thing called by many names |
+| `copy` | Social posts, captions, emails, ads | Hype words, stock lines, stock hooks, punchline paragraphs, engagement bait, canned courtesies, exclamation marks | Claims about what it does and for whom; the same voice for every client |
 | `image` | Generated or chosen imagery | Nothing yet | Floating 3D shapes, stock faces, blob crops, fake grain, the AI palette |
 | `code` | Code changes in JavaScript, TypeScript and Python | Comments that narrate the code, debug output, dead and commented-out code, swallowed errors, pass-through wrappers, generic names, casts and `any`, TODO residue, style drift, unused imports, deep nesting, docstring bloat, vague error messages, notes files left in the change | Scope creep, tests that only test their mocks, layers nobody asked for |
 
@@ -68,6 +69,15 @@ The record goes in the project's tokens or design notes:
 
 Severity: high is a defect (unreadable text, a control with no name, placeholder or made-up content). Medium is a pattern to remove or justify. Low asks you to confirm it was on purpose.
 
+Every rule is also **hard** or **soft**. Hard rules are wrong in any voice or brand; soft rules are style defaults that a genre, a profile or the writer's own voice may override. `--fail-on hard` fails only on hard findings; `--strict` still fails on any high finding.
+
+## Genres, profiles and the trend score
+
+- **Genre** (`--genre social|email|docs|legal|clinical|academic|fiction|speech`): relaxes soft rules that do not fit the kind of writing, such as hedges in legal text or repetition in a speech. `--genres` lists what each one changes.
+- **Profile** (`--profile file.json`): an optional file that tunes the checker for a team, brand or writer. It can switch rules off, change severities, allow words and ban others. Hard rules stay on unless it sets `allowHardOff`. With no profile, the neutral defaults apply. Keys and generic examples: `profiles/README.md`. A profile made for one person stays in their private files, never in this repo.
+- **Trend score**: files of prose with 150 words or more get a 0–100 score. Use it to compare drafts of the same piece (`--history scores.jsonl` records runs). It is not a grade and not a comparison between writers.
+- **Skipped text**: quotes, code, blockquotes and links are left out of the prose checks, and words used in their literal sense are kept ("elevated blood pressure"). Mark other regions with `<!-- slop-guard: off -->` and `<!-- slop-guard: on -->`.
+
 ## How it relates to other skills
 
 slop-guard is the gate: one rules file, one checker, one checklist. The tools below go deeper, and you can run them alongside it when they are installed.
@@ -81,7 +91,7 @@ When they disagree, record the choice you made and why.
 
 ## Adding or changing a rule
 
-1. Edit `rules.json`: give the rule an id, `dont`, `instead`, `contexts`, `check`, `severity`, and a `detector` if the checker can find it.
+1. Edit `rules.json`: give the rule an id, `dont`, `instead`, `contexts`, `check`, `severity`, `kind` (hard or soft), and a `detector` if the checker can find it. A new prose rule must stay quiet on the public-domain set in `tests/fixtures/public-domain/`.
 2. If it has a detector, add it to `check-slop.mjs` and plant it in `tests/check-slop.test.mjs` with a clean case that must stay quiet.
 3. Bump `version` in `rules.json`, then run `node check-slop.mjs --rules-md > RULES.md` and `node --test tests/check-slop.test.mjs`.
 4. Projects that keep a copy of the checker need the new `rules.json`, `check-slop.mjs` and `RULES.md` copied in.

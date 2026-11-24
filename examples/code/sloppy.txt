@@ -1,24 +1,24 @@
-HIGH   code-swallowed-errors sloppy.js:21  An empty catch block hides the failure: handle it, or say in a comment why it is safe to ignore.
+HIGH   code-swallowed-errors sloppy.js:21  An empty catch block hides the failure: handle it, or say in a comment why it is safe to ignore. [hard]
        catch (e) {}
-HIGH   code-swallowed-errors sloppy.js:51  A promise catch that throws the error away.
+HIGH   code-swallowed-errors sloppy.js:51  A promise catch that throws the error away. [hard]
        .catch(() => {})
-HIGH   code-todo-residue    sloppy.js:56  Placeholder left where code should be.
+HIGH   code-todo-residue    sloppy.js:56  Placeholder left where code should be. [hard]
        ... rest of the code here
 MEDIUM code-unused-imports  sloppy.js:2  "writeFile" is imported and never used.
        import { readFile, writeFile } from 'node:fs/promises';
 MEDIUM code-unused-imports  sloppy.js:4  "formatDate" is imported and never used.
        import { formatDate } from './dates.js';
-MEDIUM code-debug-output    sloppy.js:28  console.log left in: remove it or use the project's logger.
+MEDIUM code-debug-output    sloppy.js:28  console.log left in: remove it or use the project's logger. [hard]
        console.log("loans", loans);
 MEDIUM code-dead-code       sloppy.js:42  2 lines of commented-out code: delete them, version control keeps them.
        const old = loans.filter((l) => l.late);
-MEDIUM code-debug-output    sloppy.js:45  console.log left in: remove it or use the project's logger.
+MEDIUM code-debug-output    sloppy.js:45  console.log left in: remove it or use the project's logger. [hard]
        console.log('done');
 MEDIUM code-dead-code       sloppy.js:45  Unreachable: this line comes after a return at the same level.
        console.log('done');
 MEDIUM code-generic-errors  sloppy.js:52  "Something went wrong" names no cause: give a stable code and say what failed and what to do.
        if (!loan.member) throw new Error('Something went wrong');
-MEDIUM code-todo-residue    sloppy.js:57  A "not implemented" stub on a code path.
+MEDIUM code-todo-residue    sloppy.js:57  A "not implemented" stub on a code path. [hard]
        throw new Error("Not implemented");
 LOW    code-style-drift     sloppy.js:6  var mixed with let and const: match the file.
        var DAY = 24 * 60 * 60 * 1000;
@@ -36,9 +36,9 @@ LOW    code-generic-names   sloppy.js:26  "result" says nothing about what it ho
        const result =
 LOW    code-deep-nesting    sloppy.js:34  Control flow 6 levels deep: return early or pull the block into a named function.
        if (today - loan.due > DAY) {
-LOW    code-todo-residue    sloppy.js:49  A TODO with no owner or ticket: finish it, or link the ticket.
+LOW    code-todo-residue    sloppy.js:49  A TODO with no owner or ticket: finish it, or link the ticket. [hard]
        TODO: add error handling
 LOW    code-narrating-comments sloppy.js:50  A comment that says what the next line plainly does: delete it, or say why instead.
        Send the email / await sendEmail(loan.member.email, `Please return the ${loan.tool}`).catch(() => {});
 
-slop-guard: 1 file(s), 21 finding(s): 3 high, 8 medium, 10 low (context: code). Hits are evidence for a reviewer, not a verdict.
+slop-guard: 1 file(s), 21 finding(s): 3 high, 8 medium, 10 low; 7 hard (context: code). Hits are evidence for a reviewer, not a verdict.

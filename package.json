@@ -1,16 +1,28 @@
 {
   "name": "slop-guard",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Anti-slop rules for AI-made pages, apps, decks, documents, copy, images and code, with a checker that needs no dependencies.",
   "type": "module",
-  "bin": { "slop-guard": "check-slop.mjs" },
-  "files": ["check-slop.mjs", "rules.json", "RULES.md", "SKILL.md", "NOTICE", "LICENSE"],
+  "bin": {
+    "slop-guard": "check-slop.mjs"
+  },
+  "files": [
+    "check-slop.mjs",
+    "rules.json",
+    "RULES.md",
+    "SKILL.md",
+    "NOTICE",
+    "LICENSE",
+    "profiles"
+  ],
   "scripts": {
     "test": "node --test tests/check-slop.test.mjs",
     "rules": "node check-slop.mjs --rules-md > RULES.md",
     "docs": "node docs/build-docs.mjs"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "license": "Apache-2.0",
   "repository": "github:blisse-code/slop-guard"
 }

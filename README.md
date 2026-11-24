@@ -39,13 +39,31 @@ node check-slop.mjs page.html --context web
 
 ```sh
 node check-slop.mjs <files or folders> --context <web|app|deck|doc|copy|image|code>
-                    [--pairing type-pairing.md] [--json out.json] [--strict] [--year 2026]
+                    [--genre <genre>] [--profile profile.json] [--history scores.jsonl]
+                    [--pairing type-pairing.md] [--json out.json] [--strict | --fail-on hard] [--year 2026]
 node check-slop.mjs --list --context app      # the rules for one context
 node check-slop.mjs --rubric --context doc    # only the rows you check by eye
+node check-slop.mjs --genres                  # the genres and what each one relaxes
 node check-slop.mjs src --context code         # a code change in JS, TS or Python
 ```
 
-`--strict` exits with code 1 when there is a high-severity finding, so you can use it in CI. `--pairing` checks that a type pairing was chosen and written down before the build started (see `SKILL.md`).
+`--strict` exits with code 1 when there is a high-severity finding, so you can use it in CI. `--fail-on hard` fails only on hard findings, and `--fail-on medium` on anything medium or worse. `--pairing` checks that a type pairing was chosen and written down before the build started (see `SKILL.md`).
+
+## Fewer false alarms
+
+- **Quoted, cited and code text is skipped.** The prose checks ignore text in quotation marks, code blocks and inline code, blockquotes and links, so a report that quotes "unlock your potential" to criticise it is not flagged for it. Mark any other region with `<!-- slop-guard: off -->` and `<!-- slop-guard: on -->`, or a whole file with `<!-- slop-guard: ignore-file -->`.
+- **Literal senses are kept.** "Elevated blood pressure", "seamless steel tubes", "the engine's flywheel", "the company name on the invoice" and "studies show (Lee et al., 2021)" pass, while "elevate your brand" and "our growth flywheel" are still flagged.
+- **A false-alarm set.** Public-domain prose (Lincoln, Austen, Thoreau, Dickens and others, in `tests/fixtures/public-domain/`) must raise nothing at medium or above. A new prose rule ships only when it stays quiet there.
+
+## Genres, profiles, hard and soft
+
+- **Genres** relax rules that do not fit a kind of writing: hedges are right in legal and clinical text, repetition is right in a speech, and FAQ headings are right in docs. Pass `--genre social|email|docs|legal|clinical|academic|fiction|speech`.
+- **Profiles** are optional JSON files that tune the checker for a team, brand or writer: switch rules off, change severities, allow words, ban others. Without one, the neutral defaults apply. See [profiles/](profiles/README.md) for the keys and four generic examples.
+- **Hard and soft.** Every rule is one or the other. Hard rules are wrong in any voice (placeholder text, made-up proof, unreadable type), so profiles and genres cannot switch them off without saying so. Soft rules are style defaults that a voice may override.
+
+## Trend score
+
+Each file of prose with 150 words or more gets a 0–100 trend score, weighted by severity and by length. Use it to watch one piece of work improve across drafts, with `--history scores.jsonl` to record runs and show the change since the last one. It is not a grade, and it does not compare one writer with another. Short texts get no score, because a couple of findings would swing it wildly.
 
 ## Contexts
 
@@ -61,10 +79,10 @@ node check-slop.mjs src --context code         # a code change in JS, TS or Pyth
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/contexts-dark.svg">
-  <img alt="Rules per context: web 139 rules with 102 found by the checker; app 105 with 76; deck 102 with 76; doc 59 with 45; copy 43 with 36; image 8 with 4; code 17 with 15." src="docs/contexts-light.svg" width="100%">
+  <img alt="Rules per context: web 147 rules with 110 found by the checker; app 106 rules with 77 found by the checker; deck 111 rules with 85 found by the checker; doc 68 rules with 54 found by the checker; copy 52 rules with 45 found by the checker; image 8 rules with 4 found by the checker; code 17 rules with 15 found by the checker." src="docs/contexts-light.svg" width="100%">
 </picture>
 
-All 169 rules, by context: [RULES.md](RULES.md).
+All 178 rules, by context: [RULES.md](RULES.md).
 
 Text people read on a page uses curly quotes and apostrophes. Code, Markdown source, commands and attributes keep straight ones. The checker flags straight quotes only in the visible text of HTML.
 
@@ -121,7 +139,7 @@ The checker only sees what is in the files. Layout, imagery and tone still need 
 
 ## Add a rule
 
-1. Add the rule to `rules.json`: an `id`, the pattern to avoid (`dont`), what to do `instead`, its `contexts`, how to `check` it, a `severity`, and a `detector` name if the checker can find it.
+1. Add the rule to `rules.json`: an `id`, the pattern to avoid (`dont`), what to do `instead`, its `contexts`, how to `check` it, a `severity`, whether it is `hard` or `soft` (`kind`), and a `detector` name if the checker can find it.
 2. For a detector, add the code to `check-slop.mjs`. Then plant the pattern in `tests/check-slop.test.mjs`, with a clean case that must stay quiet.
 3. Bump `version` in `rules.json` and regenerate the list: `node check-slop.mjs --rules-md > RULES.md`.
 4. Run `node --test tests/check-slop.test.mjs`. CI runs the same tests on Node 20, 22 and 24, and checks that `RULES.md` matches `rules.json`.

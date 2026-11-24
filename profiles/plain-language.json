@@ -1,0 +1,11 @@
+{
+  "name": "plain-language",
+  "description": "A public-service style: plain words are required, hedges and jargon are raised, and a few stock civil-service phrases are banned.",
+  "severity": { "plain-words": "medium", "wordy-phrases": "medium", "hedge-stacks": "medium" },
+  "ban": [
+    { "phrase": "going forward", "instead": "say when" },
+    { "phrase": "in due course", "instead": "give a date" },
+    { "phrase": "stakeholders", "instead": "name the people" },
+    { "phrase": "best practice", "instead": "say what the practice is" }
+  ]
+}

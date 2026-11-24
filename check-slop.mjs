@@ -130,6 +130,119 @@ const AMBIG_DATE = /\b(\d{1,2})([/-])(\d{1,2})\2(\d{4}|\d{2})\b/g;
 const CONTROL_SEL = /(^|[\s,>+~(])(button|\.btn[\w-]*|\.button[\w-]*|\.icon-?(?:btn|button)[\w-]*|\[role=["']?button["']?\]|select|\.chip[\w-]*|\.tab|\.toggle[\w-]*|\.close[\w-]*|\.fab)(?=$|[\s,>+~:.\[)])/i;
 const FIELD_SEL = /(^|[\s,>+~])(input|select|textarea|\.input[\w-]*|\.field[\w-]*|\.form-control)(?=$|[\s,>+~:.\[])/i;
 
+// ---- v2.2: masking, literal sense, rhetoric and rhythm ---------------------------------------
+const blank = (s) => s.replace(/[^\n]/g, ' ');
+// Quoted, cited and code text is someone else's words, or not prose at all. Blank it before the
+// prose patterns run, keeping every offset and line number. Quote marks themselves stay.
+export function maskProse(s, { quotes = true, code = true, blockquotes = true, urls = true } = {}) {
+  if (code) s = s.replace(/^([ \t]*)(```|~~~)[^\n]*\n[\s\S]*?^[ \t]*\2[^\n]*$/gm, blank).replace(/`[^`\n]+`/g, blank).replace(/^(?: {4}|\t)(?!\s*[-*+]\s|\s*\d+[.)]\s).*$/gm, (l, i, all) => (/\n\s*\n$/.test(all.slice(Math.max(0, i - 2), i)) || i === 0 ? blank(l) : l));
+  if (blockquotes) s = s.replace(/^[ \t]*>.*$/gm, blank);
+  if (urls) s = s.replace(/\bhttps?:\/\/[^\s)>\]]+/g, blank);
+  if (quotes) s = s.replace(/"[^"\n]{1,400}"|“[^”\n]{1,400}”/g, (m) => m[0] + blank(m.slice(1, -1)) + m.slice(-1))
+    // single quotes as quote marks: opened after a space or bracket, closed before punctuation,
+    // so the apostrophe in "it's" does not end the quote
+    .replace(/(^|[\s(\[])'([^'\n]{1,200}?)'(?=[\s.,;:!?)\]]|$)/gm, (m, pre, body) => `${pre}'${blank(body)}'`);
+  // a region the writer marked: <!-- slop-guard: off --> ... <!-- slop-guard: on -->
+  s = s.replace(/slop-guard:\s*off\b[\s\S]*?(?:slop-guard:\s*on\b|$)/g, blank);
+  return s;
+}
+// A file that opts out entirely, such as a catalogue of the patterns themselves.
+const IGNORE_FILE = /slop-guard:\s*ignore-file\b/;
+// A citation in the same sentence: (Author 2020), [3], [^note], a link, a DOI or "et al.".
+const CITATION = /\(\s*[A-Z][^()\n]{0,80}?\b(?:1[89]|20)\d{2}[a-z]?\s*\)|\[\d+(?:\s*[,–-]\s*\d+)*\]|\[\^[^\]\n]+\]|https?:\/\/|\bdoi:|\bet al\.|\b(?:source|sources|via):\s/i;
+// Words that are slop as metaphor and fine in their literal sense. Each entry names the finding it
+// clears and the evidence it needs: the word itself, then what comes straight after or before it,
+// or what sits nearby (within about a sentence).
+const LITERAL = [
+  { det: 'placeholders', word: /^company name$/i, before: /\b(?:the|a|an|their|its|our|his|her|each|any|this|that|every|real|legal|registered|full|trading|new|old)\s+$/i },
+  { det: 'default-cast', near: /\b(?:pseudonyms?|fictional|made[- ]up|not (?:its|their|the|his|her) real name|anonymi[sz]ed|stand-in|renamed|sample (?:company|data|tenant)|demo tenant)\b/i },
+  { det: 'hype-words', word: /^elevated?s?$/i, after: /^\s+(?:blood|levels?|risks?|temperatures?|pressures?|heart|position|platforms?|floors?|roads?|railways?|trains?|walkways?|terrain|ground|enzymes?|readings?|concentrations?|liver)\b/i },
+  { det: 'hype-words', word: /^elevated$/i, before: /\b(?:is|are|was|were|remain(?:s|ed)?|became|stays?|slightly|mildly|highly|significantly)\s+$/i, near: /\b(?:levels?|blood|risk|pressure|temperature|count|enzymes?|readings?|marker|patients?|dose)\b/i },
+  { det: 'hype-words', word: /^seamless(?:ly)?$/i, after: /^\s+(?:pipes?|tubes?|tubing|steel|fabric|garments?|knit\w*|gutters?|floors?|stockings?|joints?|welds?)\b/i },
+  { det: 'hype-words', word: /^unleash/i, near: /\b(?:leash|dogs?|pupp(?:y|ies)|hounds?)\b/i },
+  { det: 'hype-words', word: /^revolution/i, near: /\b(?:war|independence|french|american|industrial|russian|bolshevik|cultural|history|historians?|orbits?|rotations?|planets?|axis)\b/i },
+  { det: 'fancy-word', word: /^flywheel$/i, near: /\b(?:engines?|motors?|inertia|rpm|crankshaft|torque|clutch|bearings?|energy storage)\b/i },
+  { det: 'fancy-word', word: /^substrates?$/i, near: /\b(?:enzymes?|wafers?|cells?|soil|semiconductors?|pcbs?|chemicals?|reactions?|layers?|coatings?|films?|growth|microb\w*|silicon|catalys\w*)\b/i },
+  { det: 'fancy-word', word: /^north star$/i, near: /\b(?:polaris|sky|night|navigat\w*|constellations?|astronom\w*|celestial)\b/i },
+  { det: 'fancy-word', word: /^leverag/i, near: /\b(?:debt|loans?|margin|ratios?|equity|financial|fulcrum|levers?|borrow\w*|buyout)\b/i },
+  { det: 'filler-words', word: /^realm$/i, near: /\b(?:kings?|kingdom|crown|queens?|monarch\w*|fantasy|dungeons?|games?|defence of the|coins?)\b/i },
+  { det: 'filler-words', word: /^paradigm$/i, near: /\b(?:programming|kuhn|scientific revolutions?|grammar|inflection|declension|conjugation)\b/i },
+  { det: 'filler-words', word: /^pivotal$/i, near: /\b(?:pivots?|hinges?|joints?|axles?)\b/i },
+  { det: 'promo-word', word: /^stunning$/i, near: /\b(?:stun (?:gun|grenade)|tasers?|concussion|blow to the head)\b/i },
+  { det: 'puffery', word: /^serves as/i, near: /\b(?:tennis|volleyball|badminton|squash)\b/i },
+  { det: 'vague-authority', sentence: CITATION },
+  { det: 'fake-proof', sentence: CITATION },
+];
+// Drop findings whose evidence is used in its literal sense in `raw` (the unmasked text).
+function guardLiteral(out, text, raw) {
+  return out.filter((f) => {
+    const rules = LITERAL.filter((g) => g.det === f.detector && (!g.word || g.word.test(String(f.evidence).trim())));
+    if (!rules.length) return true;
+    const ev = String(f.evidence).trim();
+    let from = 0, i, kept = false;
+    // the finding stands if any occurrence is not cleared by a guard
+    while ((i = text.toLowerCase().indexOf(ev.toLowerCase(), from)) >= 0) {
+      from = i + 1;
+      const before = raw.slice(Math.max(0, i - 40), i), after = raw.slice(i + ev.length, i + ev.length + 40);
+      const near = raw.slice(Math.max(0, i - 160), i + ev.length + 160);
+      const s0 = Math.max(raw.lastIndexOf('. ', i), raw.lastIndexOf('\n', i), 0), s1 = raw.slice(i).search(/[.!?](?:\s|$)|\n\s*\n/);
+      const sentence = raw.slice(s0, s1 < 0 ? undefined : i + s1 + 1);
+      const cleared = rules.some((g) => (!g.before || g.before.test(before)) && (!g.after || g.after.test(after)) && (!g.near || g.near.test(near)) && (!g.sentence || g.sentence.test(sentence)));
+      if (!cleared) { kept = true; break; }
+    }
+    return kept || i === -1 && from === 0;
+  });
+}
+const STOPWORDS = new Set('a an the and or but if of to in on at by for with from as is are was were be been being it its this that these those i you he she we they me him her us them my your his our their not no so than then there here what which who whom whose when where why how all any each few more most other some such only own same too very can will just do does did done have has had having would should could may might must shall into over under about after before again further once up down out off above below between through during against both either neither nor also yet one two'.split(' '));
+const NOT_SLOGAN = /,\s+not\s+(?:a |an |the |just |only |your |our |their )?[\w'-]+(?:\s+[\w'-]+){0,3}[.!](?=\s|$)/gi;
+const REVEAL = /(?:^|[.!?]\s+|\n)((?:here'?s the (?:thing|truth|deal|problem|twist|kicker)|the (?:truth|secret|lesson|twist|irony|catch|problem|point|reality|kicker|difference|real question)(?: is| was| here)?):)\s/gim;
+const HOOK = /^[ \t]*(ever (?:wondered|noticed|asked yourself)|what if i told you|have you ever (?:wondered|noticed|felt|asked)|picture this|imagine (?:this|if)\b|let'?s be (?:real|honest)|hot take:|unpopular opinion:|stop (?:doing|using|saying) [^.!?\n]{1,30}\.|nobody talks about)/gim;
+const TRIPLET = /\b([a-z]+(?: [a-z]+)?), ([a-z]+(?: [a-z]+)?),? and ([a-z]+(?: [a-z]+)?)\b/gi;
+const stats = (xs) => { const n = xs.length, mean = xs.reduce((a, b) => a + b, 0) / (n || 1); const sd = Math.sqrt(xs.reduce((a, b) => a + (b - mean) ** 2, 0) / (n || 1)); return { n, mean, sd, cv: mean ? sd / mean : 0 }; };
+// Prose of a Markdown or text body: headings, list items, tables, quotes and code removed.
+const proseLines = (s) => s.split('\n').map((l) => (/^\s*(#|[-*+]\s|\d+[.)]\s|\||>|```|~~~|<)/.test(l) ? '' : l));
+const proseParagraphs = (s) => proseLines(s).join('\n').split(/\n\s*\n/).map((p) => p.replace(/\s+/g, ' ').trim()).filter((p) => /[a-z]/i.test(p));
+const sentencesOf = (p) => p.split(/(?<=[.!?])["”’)]?\s+(?=["“‘(]?[A-Z0-9])/).map((x) => x.trim()).filter((x) => x.split(/\s+/).length >= 1 && /[a-z]/i.test(x));
+const wordCount = (s) => (s.match(/[A-Za-z0-9][\w'’-]*/g) || []).length;
+// Rhetoric and rhythm: counted habits, one use of which is a choice.
+function rhetoricDetectors(text, add) {
+  // dialogue and quoted passages are someone else's rhythm: leave those paragraphs out of the counts
+  const paras = proseParagraphs(text).filter((p) => !/"/.test(p));
+  const sents = paras.flatMap(sentencesOf);
+  const notSlogans = [...text.matchAll(NOT_SLOGAN)].map((m) => m[0]);
+  if (notSlogans.length >= 3) add('not-slogan', notSlogans[0].replace(/^,\s*/, ''), `${notSlogans.length} sentences end on ", not ...": state what it is and drop most of the contrasts.`);
+  const reveals = [...text.matchAll(REVEAL)].map((m) => m[1]);
+  if (reveals.length) add('colon-reveal', reveals[0], `"${reveals[0]}" sets up a reveal${reveals.length > 1 ? ` (${reveals.length} in all)` : ''}: say the point in the sentence itself.`);
+  for (const m of text.matchAll(HOOK)) { add('hook-formula', m[1], `"${m[1].trim()}" is a stock hook: open on the specific thing instead.`); break; }
+  let qa = 0, firstQa = null;
+  for (let i = 0; i + 1 < sents.length; i++) {
+    const q = sents[i], a = sents[i + 1];
+    if (/\?$/.test(q) && wordCount(q) <= 8 && !/\?$/.test(a) && wordCount(a) <= 8) { qa++; firstQa ||= `${q} ${a}`; }
+  }
+  if (qa >= 2) add('self-qa', firstQa, `${qa} short questions answered at once by the writer ("${firstQa}"): make the statement instead.`);
+  const punch = paras.filter((p) => sentencesOf(p).length === 1 && wordCount(p) <= 6);
+  if (paras.length >= 6 && punch.length >= 3 && punch.length / paras.length >= 0.3) add('punch-paragraph', punch[0], `${punch.length} of ${paras.length} paragraphs are a single line of six words or fewer: fold most of them into the argument.`);
+  const tokens = (proseLines(text).join(' ').toLowerCase().match(/[a-z][a-z'’-]*/g) || []);
+  const grams = {};
+  for (let i = 0; i + 3 < tokens.length; i++) {
+    const g = tokens.slice(i, i + 4);
+    if (g.filter((w) => !STOPWORDS.has(w)).length < 2) continue;
+    const k = g.join(' '); grams[k] = (grams[k] || 0) + 1;
+  }
+  const rep = Object.entries(grams).filter(([, n]) => n >= 4).sort((a, b) => b[1] - a[1]);
+  if (rep.length) add('repeated-phrase', rep[0][0], `"${rep[0][0]}" appears ${rep[0][1]} times${rep.length > 1 ? `, and ${rep.length - 1} other phrase${rep.length > 2 ? 's' : ''} four or more times` : ''}: vary it or cut the repeats.`);
+  const lens = sents.map(wordCount).filter((n) => n >= 3);
+  const st = stats(lens);
+  if (st.n >= 12 && st.mean >= 8 && st.cv < 0.3) add('uniform-rhythm', sents[0], `${st.n} sentences average ${st.mean.toFixed(0)} words with little variation (spread ${st.sd.toFixed(1)}): mix short sentences with long ones.`);
+  else {
+    const pl = stats(paras.map(wordCount).filter((n) => n >= 20));
+    if (pl.n >= 6 && pl.cv < 0.15) add('uniform-rhythm', paras[0], `${pl.n} paragraphs of almost the same length (about ${pl.mean.toFixed(0)} words each): let their length follow the content.`);
+  }
+  const words = tokens.length;
+  const triplets = [...proseLines(text).join('\n').matchAll(TRIPLET)].map((m) => m[0]);
+  if (triplets.length >= 4 && words / triplets.length <= 150) add('triplets', triplets[0], `${triplets.length} lists of exactly three ("${triplets[0]}"): keep the threes that are real and break the pattern elsewhere.`);
+}
+
 // ---- detectors -----------------------------------------------------------------------------
 // Each returns findings { detector, line, evidence, message, severity? }.
 function cssDetectors(css, file) {
@@ -401,7 +514,7 @@ export function checkPairing(text, file = '<record>') {
   return out;
 }
 
-function htmlDetectors(html, file, year) {
+function htmlDetectors(html, file, year, opts = {}) {
   const out = [];
   const src = stripHtml(html);
   const add = (detector, i, evidence, message, severity) => out.push({ detector, file, line: lineAt(src, i), evidence: String(evidence).slice(0, 160), message, severity });
@@ -527,16 +640,22 @@ function htmlDetectors(html, file, year) {
   if (noSize.length && !/aspect-ratio/i.test(html)) add('layout-shift', noSize[0].index, noSize[0][0], `${noSize.length} image${noSize.length > 1 ? 's' : ''} with no width and height: the page jumps as they load.`);
   // bold sprinkled through paragraphs
   for (const m of src.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)) if ((m[1].match(/<(strong|b)\b/gi) || []).length >= 3) { add('bold-overuse', m.index, textOf(m[1]).slice(0, 80), 'Three or more bold phrases in one paragraph.'); break; }
-  out.push(...textDetectors(textOf(src), file, year, src));
+  const prose = opts.mask === false ? src : src.replace(/<(code|pre|kbd|samp|blockquote|q)\b[\s\S]*?<\/\1>/gi, blank);
+  out.push(...textDetectors(textOf(prose), file, year, prose, opts));
   return out;
 }
 
 // Plain text, Markdown and the visible text of HTML.
-function textDetectors(text, file, year, original = text) {
+function textDetectors(text, file, year, original = text, opts = {}) {
   // Curly quotes are the preferred form in visible text, so match patterns on straight ones.
   // One character for one character, so offsets and line numbers stay the same.
   const flat = (s) => s.replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"');
+  const same = original === text;
   text = flat(text); original = flat(original);
+  // Quotes, code, blockquotes and links are blanked for the prose patterns (v2.2). `raw` keeps the
+  // unmasked text for the literal-sense guards, which need to see citations and links.
+  const raw = text;
+  if (opts.mask !== false) { text = maskProse(text, opts.mask || {}); original = same ? text : maskProse(original, { ...(opts.mask || {}), quotes: false }); }
   const out = [];
   const lineOf = (needle) => { const i = original.indexOf(needle); return i >= 0 ? lineAt(original, i) : 1; };
   const add = (detector, evidence, message, severity) => out.push({ detector, file, line: lineOf(evidence), evidence: String(evidence).slice(0, 160), message, severity });
@@ -624,7 +743,13 @@ function textDetectors(text, file, year, original = text) {
   for (const m of text.matchAll(PROMO)) if (once('pw' + m[0].toLowerCase())) add('promo-word', m[0], `"${m[0]}": describe what is there instead.`);
   for (const m of text.matchAll(DESPITE)) if (once('df' + m[0].toLowerCase())) add('despite-formula', m[0], `"${m[0]}": name the problem and the result.`);
   for (const m of text.matchAll(AMBIG_DATE)) if (+m[1] <= 12 && +m[3] <= 12 && m[1] !== m[3] && once('ad' + m[0])) add('ambiguous-date', m[0], `"${m[0]}" reads two ways: write the month as a word.`);
-  return out;
+  // v2.2 rhetoric and rhythm, and the words a profile bans
+  rhetoricDetectors(same ? text : original.replace(/<[^>]+>/g, (t) => blank(t)), add);
+  for (const b of opts.ban || []) {
+    const re = new RegExp(`(?<![\\w-])${escapeRe(b.phrase)}(?![\\w-])`, 'gi');
+    for (const m of text.matchAll(re)) { add('profile-ban', m[0], b.message || `"${m[0]}" is on this profile's banned list${b.instead ? `: ${b.instead}` : ''}.`, b.severity); break; }
+  }
+  return guardLiteral(out, text, raw);
 }
 
 // ---- code: JavaScript, TypeScript and Python --------------------------------------------------
@@ -904,32 +1029,95 @@ function resolve(raw, contexts) {
     const cands = id ? [RULE[id]].filter(Boolean) : byDetector[f.detector] || [];
     const r = cands.find((x) => x.contexts.some((c) => contexts.includes(c)));
     if (!r) return [];
-    return [{ rule: r.id, detector: f.detector, severity: f.severity || r.severity, file: f.file, line: f.line, evidence: f.evidence, message: f.message, instead: r.instead }];
+    return [{ rule: r.id, detector: f.detector, severity: f.severity || r.severity, kind: r.kind, file: f.file, line: f.line, evidence: f.evidence, message: f.message, instead: r.instead }];
   });
 }
 // One file. With project: true (the default) the file's own CSS also gets the
 // project-level typography checks; checkPaths runs those once across every file instead.
-export function checkText(content, kind, file = '<input>', { context, year = new Date().getFullYear(), project = true } = {}) {
+export function checkText(content, kind, file = '<input>', { context, year = new Date().getFullYear(), project = true, profile, genre } = {}) {
   // Markdown and text in a UI context are working notes, not interface copy: UI rules check HTML and CSS only.
   if (kind === 'text' && (context === 'app' || context === 'web')) return [];
+  if (kind !== 'code' && IGNORE_FILE.test(content.slice(0, 2000))) return [];
   // Source code is checked only in the code context. In the code context, pages and stylesheets are
   // skipped, and Markdown is checked only for working notes left in the change.
   if (kind === 'code' && context && context !== 'code') return [];
   if (context === 'code' && kind !== 'code') return kind === 'text' && SCRATCH.test(path.basename(file)) ? resolve([{ detector: 'scratch-file', file, line: 1, evidence: path.basename(file), message: `${path.basename(file)} looks like working notes: keep it out of the change, or fold what matters into the docs.` }], ['code']) : [];
+  const dopts = { mask: profile?.mask, ban: profile?.ban };
   const raw = kind === 'code' ? codeDetectors(content, file)
-    : kind === 'html' ? [...htmlDetectors(content, file, year), ...cssDetectors(htmlToCss(content), file)]
-    : kind === 'css' ? cssDetectors(content, file) : textDetectors(content, file, year);
+    : kind === 'html' ? [...htmlDetectors(content, file, year, dopts), ...cssDetectors(htmlToCss(content), file)]
+    : kind === 'css' ? cssDetectors(content, file) : textDetectors(content, file, year, content, dopts);
   if (project && (kind === 'html' || kind === 'css')) raw.push(...projectChecks([{ css: kind === 'html' ? htmlToCss(content) : content, file }]));
-  return resolve(raw, context ? [context] : DEFAULT_CONTEXT[kind]);
+  return applyPolicy(resolve(raw, context ? [context] : DEFAULT_CONTEXT[kind]), { profile, genre });
 }
 export function checkPaths(paths, opts = {}) {
   const files = paths.flatMap((p) => walk(p));
-  const findings = files.flatMap((f) => checkText(fs.readFileSync(f, 'utf8'), EXT[path.extname(f).toLowerCase()], f, { ...opts, project: false }));
+  const findings = [], scores = [];
+  for (const f of files) {
+    const content = fs.readFileSync(f, 'utf8'), kind = EXT[path.extname(f).toLowerCase()];
+    const found = checkText(content, kind, f, { ...opts, project: false });
+    findings.push(...found);
+    const words = proseWordCount(content, kind);
+    if (words) scores.push({ file: f, words, score: trendScore(found, words, opts.profile?.minScoreWords) });
+  }
   // project-level style checks have no rules in the code context, so skip their work there
   const styled = opts.context === 'code' ? [] : files.filter((f) => ['html', 'css'].includes(EXT[path.extname(f).toLowerCase()])).map((f) => ({ file: f, css: EXT[path.extname(f).toLowerCase()] === 'html' ? htmlToCss(fs.readFileSync(f, 'utf8')) : fs.readFileSync(f, 'utf8') }));
   if (styled.length) findings.push(...resolve(projectChecks(styled), opts.context ? [opts.context] : ['web', 'app']));
-  if (opts.pairing) findings.push(...resolve(checkPairing(fs.existsSync(opts.pairing) ? fs.readFileSync(opts.pairing, 'utf8') : '', opts.pairing), opts.context ? [opts.context] : ['web', 'app', 'deck', 'doc']));
-  return { files: files.length, findings };
+  if (opts.pairing) findings.push(...applyPolicy(resolve(checkPairing(fs.existsSync(opts.pairing) ? fs.readFileSync(opts.pairing, 'utf8') : '', opts.pairing), opts.context ? [opts.context] : ['web', 'app', 'deck', 'doc']), opts));
+  const scored = scores.filter((x) => x.score != null);
+  const words = scored.reduce((a, x) => a + x.words, 0);
+  const overall = words ? Math.round(scored.reduce((a, x) => a + x.score * x.words, 0) / words) : null;
+  return { files: files.length, findings, scores, score: overall };
+}
+
+// ---- v2.2: profiles, genres, hard and soft findings, the trend score ------------------------
+// A profile is an optional JSON file the user supplies (examples in profiles/). With none, the
+// neutral defaults in rules.json apply. Hard rules stay on unless the profile sets allowHardOff.
+const PROFILE_KEYS = ['$schema', 'name', 'description', 'genre', 'off', 'severity', 'allowHardOff', 'allow', 'ban', 'mask', 'minScoreWords', 'spelling', 'readingGrade', 'voice'];
+export function loadProfile(file) {
+  let p;
+  try { p = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { throw new Error(`Profile ${file} could not be read: ${e.message}`); }
+  const bad = Object.keys(p).filter((k) => !PROFILE_KEYS.includes(k) && !k.startsWith('_'));
+  if (bad.length) throw new Error(`Profile ${file} has unknown key${bad.length > 1 ? 's' : ''} ${bad.join(', ')}. Allowed: ${PROFILE_KEYS.join(', ')}.`);
+  for (const id of [...(p.off || []), ...Object.keys(p.severity || {})]) if (!RULE[id]) throw new Error(`Profile ${file} names the rule "${id}", which does not exist. List rules with --list.`);
+  for (const [id, sev] of Object.entries(p.severity || {})) if (!['high', 'medium', 'low'].includes(sev)) throw new Error(`Profile ${file}: severity for "${id}" must be high, medium or low, not "${sev}".`);
+  if (p.genre && !RULES.genres[p.genre]) throw new Error(`Profile ${file}: unknown genre "${p.genre}". Use one of: ${Object.keys(RULES.genres).join(', ')}.`);
+  p.ban = (p.ban || []).map((b) => (typeof b === 'string' ? { phrase: b } : b));
+  p.dir = path.dirname(path.resolve(file));
+  return p;
+}
+const LOWER = { high: 'medium', medium: 'low', low: 'low' };
+const escapeRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Apply a genre's allowances and a profile's choices to resolved findings.
+export function applyPolicy(findings, { profile, genre } = {}) {
+  const g = RULES.genres[genre || profile?.genre];
+  const off = new Set(profile?.off || []);
+  const allow = (profile?.allow || []).map((w) => new RegExp(`(?<![\\w-])${escapeRe(w)}(?![\\w-])`, 'i'));
+  return findings.flatMap((f) => {
+    const hard = f.kind === 'hard', mayTouch = !hard || profile?.allowHardOff;
+    if (off.has(f.rule) && mayTouch) return [];
+    if (g && !hard && g.off.includes(f.rule)) return [];
+    if (allow.length && f.rule !== 'profile-words' && allow.some((re) => re.test(String(f.evidence)))) return [];
+    let severity = f.severity;
+    if (g && !hard && g.lower.includes(f.rule)) severity = LOWER[severity];
+    if (profile?.severity?.[f.rule] && mayTouch) severity = profile.severity[f.rule];
+    return [{ ...f, severity }];
+  });
+}
+// Words of prose a reader sees: Markdown or text without code, headings, lists and quotes;
+// HTML without scripts, styles, code, navigation and footers.
+export function proseWordCount(content, kind) {
+  if (kind === 'text') return wordCount(proseLines(maskProse(content)).join(' ').replace(/"[ ]*"/g, ' '));
+  if (kind === 'html') return wordCount(textOf(stripHtml(content).replace(/<(code|pre|kbd|samp|blockquote|q|nav|footer)\b[\s\S]*?<\/\1>/gi, blank)));
+  return 0;
+}
+// A 0-100 number for watching one piece of work over time. It is not a grade and not a
+// comparison between writers. Texts under minWords (150 by default) get no score, because a
+// couple of findings would swing it wildly; short texts are also counted as at least 400 words.
+const WEIGHT = { high: 10, medium: 4, low: 1 };
+export function trendScore(findings, words, minWords = 150) {
+  if (words < minWords) return null;
+  const penalty = findings.reduce((a, f) => a + WEIGHT[f.severity], 0);
+  return Math.round(100 * Math.exp(-(penalty * 1000 / Math.max(words, 400)) / 50));
 }
 export function rulesFor(context, kinds) {
   return RULES.rules.filter((r) => (!context || r.contexts.includes(context)) && (!kinds || r.check.some((k) => kinds.includes(k))));
@@ -942,6 +1130,7 @@ function listMarkdown(context, kinds) {
 
 // Run as a CLI only when this file is the entry point. Resolve symlinks on both sides, so
 // running it through an installed link (~/.claude/skills/slop-guard/check-slop.mjs) works.
+const countBy = (fs_) => { const c = { high: 0, medium: 0, low: 0 }; for (const f of fs_) c[f.severity]++; return c; };
 const isMain = (() => { try { return !!process.argv[1] && fs.realpathSync(fileURLToPath(import.meta.url)) === fs.realpathSync(process.argv[1]); } catch { return false; } })();
 // The CLI sets process.exitCode rather than exiting at once, so piped output is never cut short.
 function cli() {
@@ -951,22 +1140,44 @@ function cli() {
   if (context && !RULES.contexts[context]) { console.error(`Unknown context "${context}". Use one of: ${Object.keys(RULES.contexts).join(', ')}`); process.exitCode = 2; return; }
   if (args.includes('--rules-md')) {
     const parts = Object.entries(RULES.contexts).map(([c, label]) => `## ${c}: ${label}\n\n${listMarkdown(c)}`);
-    process.stdout.write(`# slop-guard rules by context\n\nGenerated from \`rules.json\` v${RULES.version} by \`node check-slop.mjs --rules-md\`. Do not edit by hand. ${RULES.rules.length} rules. These are design and writing preferences, not a test of who or what made something.\n\n${parts.join('\n')}`);
+    process.stdout.write(`<!-- slop-guard: ignore-file (this file lists the patterns themselves) -->\n# slop-guard rules by context\n\nGenerated from \`rules.json\` v${RULES.version} by \`node check-slop.mjs --rules-md\`. Do not edit by hand. ${RULES.rules.length} rules. These are design and writing preferences, not a test of who or what made something.\n\n${parts.join('\n')}`);
     return;
   }
   if (args.includes('--list')) { process.stdout.write(listMarkdown(context)); return; }
   if (args.includes('--rubric')) { process.stdout.write(listMarkdown(context, ['screenshot', 'judgement'])); return; }
-  const skip = new Set(['--context', '--json', '--year', '--pairing']);
+  let profile;
+  const profilePath = opt('--profile') || process.env.SLOP_GUARD_PROFILE;
+  if (profilePath) { try { profile = loadProfile(profilePath); } catch (e) { console.error(e.message); process.exitCode = 2; return; } }
+  const genre = opt('--genre');
+  if (genre && !RULES.genres[genre]) { console.error(`Unknown genre "${genre}". Use one of: ${Object.keys(RULES.genres).join(', ')}`); process.exitCode = 2; return; }
+  if (args.includes('--genres')) { process.stdout.write(Object.entries(RULES.genres).map(([k, g]) => `- ${k}: ${g.label}. Off: ${g.off.join(', ') || 'none'}. Lowered: ${g.lower.join(', ') || 'none'}.`).join('\n') + '\n'); return; }
+  const failOn = opt('--fail-on') || (args.includes('--strict') ? 'high' : null);
+  if (failOn && !['hard', 'high', 'medium', 'low'].includes(failOn)) { console.error(`--fail-on takes hard, high, medium or low, not "${failOn}".`); process.exitCode = 2; return; }
+  const skip = new Set(['--context', '--json', '--year', '--pairing', '--profile', '--genre', '--history', '--fail-on']);
   const targets = args.filter((a, i) => !a.startsWith('--') && !skip.has(args[i - 1]));
   if (!targets.length) { console.error('Usage: node check-slop.mjs <file or folder>... [--context web|app|deck|doc|copy|image|code] [--json out.json] [--strict]'); process.exitCode = 2; return; }
-  const res = checkPaths(targets, { context, year: +(opt('--year') || new Date().getFullYear()), pairing: opt('--pairing') });
+  const res = checkPaths(targets, { context, year: +(opt('--year') || new Date().getFullYear()), pairing: opt('--pairing'), profile, genre });
   const order = { high: 0, medium: 1, low: 2 };
   res.findings.sort((a, b) => order[a.severity] - order[b.severity] || a.file.localeCompare(b.file) || a.line - b.line);
   const counts = { high: 0, medium: 0, low: 0 };
   for (const f of res.findings) counts[f.severity]++;
-  for (const f of res.findings) console.log(`${f.severity.toUpperCase().padEnd(6)} ${f.rule.padEnd(20)} ${path.relative(process.cwd(), f.file)}:${f.line}  ${f.message}\n       ${f.evidence}`);
-  console.log(`\nslop-guard: ${res.files} file(s), ${res.findings.length} finding(s): ${counts.high} high, ${counts.medium} medium, ${counts.low} low${context ? ` (context: ${context})` : ''}. Hits are evidence for a reviewer, not a verdict.`);
-  if (opt('--json')) fs.writeFileSync(opt('--json'), JSON.stringify({ version: RULES.version, context: context || null, counts, ...res }, null, 2));
-  process.exitCode = args.includes('--strict') && counts.high ? 1 : 0;
+  const hard = res.findings.filter((f) => f.kind === 'hard').length;
+  for (const f of res.findings) console.log(`${f.severity.toUpperCase().padEnd(6)} ${f.rule.padEnd(20)} ${path.relative(process.cwd(), f.file)}:${f.line}  ${f.message}${f.kind === 'hard' ? ' [hard]' : ''}\n       ${f.evidence}`);
+  const setting = [context && `context: ${context}`, (genre || profile?.genre) && `genre: ${genre || profile.genre}`, profile && `profile: ${profile.name || path.basename(profilePath)}`].filter(Boolean).join(', ');
+  console.log(`\nslop-guard: ${res.files} file(s), ${res.findings.length} finding(s): ${counts.high} high, ${counts.medium} medium, ${counts.low} low; ${hard} hard${setting ? ` (${setting})` : ''}. Hits are evidence for a reviewer, not a verdict.`);
+  if (profile?.allowHardOff) console.log('Note: this profile may switch off hard rules (allowHardOff), so defects can go unreported.');
+  const history = opt('--history');
+  let previous = {};
+  if (history && fs.existsSync(history)) for (const l of fs.readFileSync(history, 'utf8').split('\n')) { try { const h = JSON.parse(l); previous[h.file] = h.score; } catch { /* a malformed history line is skipped, not fatal */ } }
+  const scored = res.scores.filter((x) => x.score != null);
+  if (scored.length) {
+    const delta = (x) => (previous[x.file] != null ? ` (${x.score - previous[x.file] >= 0 ? '+' : ''}${x.score - previous[x.file]} since last run)` : '');
+    console.log(`Trend score: ${scored.length === 1 ? `${scored[0].score}/100${delta(scored[0])}` : `${res.score}/100 across ${scored.length} files of prose`}. Use it to compare versions of the same work over time; it is not a grade.`);
+    if (scored.length > 1 && scored.length <= 20) for (const x of scored) console.log(`  ${String(x.score).padStart(3)}  ${path.relative(process.cwd(), x.file)}${delta(x)}`);
+  }
+  if (history) { const at = new Date().toISOString(); fs.appendFileSync(history, scored.map((x) => JSON.stringify({ at, version: RULES.version, file: x.file, words: x.words, score: x.score, ...countBy(res.findings.filter((f) => f.file === x.file)) }) + '\n').join('')); }
+  if (opt('--json')) fs.writeFileSync(opt('--json'), JSON.stringify({ version: RULES.version, context: context || null, genre: genre || profile?.genre || null, profile: profile?.name || null, counts: { ...counts, hard }, ...res }, null, 2));
+  const failing = failOn === 'hard' ? hard : failOn ? res.findings.filter((f) => order[f.severity] <= order[failOn]).length : 0;
+  process.exitCode = failing ? 1 : 0;
 }
 if (isMain) cli();
