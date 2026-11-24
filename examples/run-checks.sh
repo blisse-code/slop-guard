@@ -16,3 +16,8 @@ run writing sloppy.md copy
 run writing clean.md copy
 run code sloppy.js code
 run code clean.js code
+# Voice: build a voice from the samples, then compare two drafts with it
+( cd voice
+  node ../../check-slop.mjs --build-voice samples.md --split '^## ' > voice.json
+  node ../../check-slop.mjs draft-in-voice.md --context copy --voice voice.json --year 2026 > draft-in-voice.txt
+  node ../../check-slop.mjs draft-off-voice.md --context copy --voice voice.json --year 2026 > draft-off-voice.txt )

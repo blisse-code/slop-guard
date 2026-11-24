@@ -12,9 +12,9 @@ A profile is an optional JSON file you pass with `--profile <file>` (or the `SLO
 | `ban` | Extra words or phrases to flag, as strings or `{ "phrase", "instead", "message", "severity" }`. They report under the `profile-words` rule. |
 | `mask` | `{ "quotes", "code", "blockquotes", "urls" }`, each `true` by default: what is left out of the prose checks. `false` checks everything. |
 | `minScoreWords` | Texts shorter than this get no trend score (default 150). |
-| `spelling` | `"en-GB"` or `"en-US"`: flags words spelled the other way (from v2.4). |
-| `readingGrade` | `{ "copy": 8, "doc": 12 }`: the reading grade each context should stay under (from v2.4). |
-| `voice` | Path to a voice file made with `--build-voice`, relative to the profile (from v2.4). Keep personal voice files and samples out of public repos. |
+| `spelling` | `"en-GB"` or `"en-US"`: flags words spelled the other way. |
+| `readingGrade` | `{ "copy": 8, "doc": 12 }`: the reading grade each context should stay under. |
+| `voice` | Path to a voice file made with `--build-voice`, relative to the profile. Drafts then get a voice match and `voice-drift` findings. Keep personal voice files and samples out of public repos. |
 
 Unknown keys, unknown rule ids and unknown genres stop the run with a message that names them, so a typo never silently switches nothing off.
 

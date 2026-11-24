@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.4.0 (2026-11-24)
+
+Edits, voice and reading level.
+
+- **Diff mode.** `--before <file>` compares one file with an earlier version; `--git-base <rev>` compares each file with git. The output lists the findings the edit added and the ones it fixed, plus a fact check under the new `facts-changed` rule:
+  - figures that disappeared or appeared;
+  - names that were dropped;
+  - a change in the number of negations.
+
+  The JSON report adds a `diff` object.
+- **Voice.** `--build-voice <files or folders>` writes a voice file from samples a person wrote themselves (`--split <regex>` divides one file into samples). The file holds:
+  - sentence and paragraph lengths and their spread;
+  - word length;
+  - punctuation, contractions, pronouns and figures, per thousand words;
+  - rates for 88 common function words.
+
+  It holds no sentences and no content words. `--voice <file>`, or `voice` in a profile, adds a voice match from 0 to 100 and a `voice-drift` finding naming the furthest features. It is a guide to drafting, not an authorship test.
+- **Reading grade** (`reading-grade`). Flesch-Kincaid grade for prose of 60 words or more, against a target per context: copy, web and app 9, deck 10, doc 13. A profile can set its own targets with `readingGrade`. The legal, clinical, academic and fiction genres switch it off.
+- **Spelling** (`spelling-variant`). A profile's `spelling` (`en-GB` or `en-US`) flags about 60 words with a clear British or American form. Quoted text is left alone.
+- `examples/voice/` builds a voice for a made-up writer and checks one draft in that voice and one far from it.
+- 186 rules.
+
 ## 2.3.0 (2026-11-24)
 
 Checks that look past single words: how the ideas are arranged, claims with no source, repetition across a site, and text outside the page body.

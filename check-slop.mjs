@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const RULES = JSON.parse(fs.readFileSync(path.join(HERE, 'rules.json'), 'utf8'));
@@ -1121,7 +1122,7 @@ function resolve(raw, contexts) {
 }
 // One file. With project: true (the default) the file's own CSS also gets the
 // project-level typography checks; checkPaths runs those once across every file instead.
-export function checkText(content, kind, file = '<input>', { context, year = new Date().getFullYear(), project = true, profile, genre } = {}) {
+export function checkText(content, kind, file = '<input>', { context, year = new Date().getFullYear(), project = true, profile, genre, voice } = {}) {
   // Markdown and text in a UI context are working notes, not interface copy: UI rules check HTML and CSS only.
   if (kind === 'text' && (context === 'app' || context === 'web')) return [];
   if (kind !== 'code' && IGNORE_FILE.test(content.slice(0, 2000))) return [];
@@ -1138,6 +1139,7 @@ export function checkText(content, kind, file = '<input>', { context, year = new
     : kind === 'html' ? [...htmlDetectors(content, file, year, dopts), ...cssDetectors(htmlToCss(content), file)]
     : kind === 'css' ? cssDetectors(content, file) : textDetectors(content, file, year, content, dopts);
   if (project && (kind === 'html' || kind === 'css')) raw.push(...projectChecks([{ css: kind === 'html' ? htmlToCss(content) : content, file }]));
+  if (kind === 'text' || kind === 'html') raw.push(...profileDetectors(content, kind, file, context, profile, voice || profile?.voice));
   return applyPolicy([...resolve(raw, context ? [context] : DEFAULT_CONTEXT[kind]), ...ui], { profile, genre });
 }
 export function checkPaths(paths, opts = {}) {
@@ -1186,6 +1188,136 @@ function repeatedAcrossFiles(files) {
   });
 }
 
+// ---- v2.4: voice, reading grade, spelling, diff with fact check ------------------------------
+// A voice file holds numbers only: rates of punctuation, pronouns and common function words, and
+// sentence and paragraph lengths, each as a mean and spread across the samples. No sentence or
+// content word from the samples is stored, so a voice file can be shared without the writing.
+const FUNCTION_WORDS = 'the of and to a in that is it for on with as was but be at by this have from or not are an they which you one were all we there their been has would will can if more when so no what out up about who into them than its some could only other then also these just because how most even any very much such through those both each might while where should own though however may yet still often perhaps rather quite really'.split(' ');
+const syllables = (w) => { w = w.toLowerCase().replace(/[^a-z]/g, ''); if (w.length <= 3) return 1; w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, ''); return Math.max(1, (w.match(/[aeiouy]{1,2}/g) || []).length); };
+// Flesch-Kincaid grade of the prose in a text (null when there is too little to judge).
+export function readingGrade(text) {
+  const sents = proseParagraphs(maskProse(text)).flatMap(sentencesOf).filter((x) => wordCount(x) >= 3);
+  const words = sents.flatMap((x) => x.match(/[A-Za-z][A-Za-z'’-]*/g) || []);
+  if (words.length < 60 || sents.length < 3) return null;
+  const syl = words.reduce((a, w) => a + syllables(w), 0);
+  return +(0.39 * (words.length / sents.length) + 11.8 * (syl / words.length) - 15.59).toFixed(1);
+}
+// Measurements of one text, used both to build a voice and to compare a draft with it.
+export function voiceFeatures(text) {
+  const masked = maskProse(text);
+  const paras = proseParagraphs(masked);
+  const body = paras.join('\n\n');
+  const words = body.match(/[A-Za-z][A-Za-z'’-]*/g) || [];
+  const n = words.length || 1, per1k = (re) => ((body.match(re) || []).length * 1000) / n;
+  const sents = paras.flatMap(sentencesOf).map(wordCount).filter((x) => x >= 1);
+  const st = stats(sents), pl = stats(paras.map(wordCount));
+  const lower = words.map((w) => w.toLowerCase().replace(/[’']/g, "'"));
+  const fw = {};
+  for (const w of FUNCTION_WORDS) fw[w] = 0;
+  for (const w of lower) if (w in fw) fw[w]++;
+  for (const w of FUNCTION_WORDS) fw[w] = (fw[w] * 1000) / n;
+  return {
+    words: words.length,
+    features: {
+      'sentence length': st.mean, 'sentence spread': st.cv, 'short sentences': sents.filter((x) => x <= 6).length / (sents.length || 1), 'long sentences': sents.filter((x) => x >= 30).length / (sents.length || 1),
+      'paragraph length': pl.mean, 'word length': words.reduce((a, w) => a + w.length, 0) / n,
+      commas: per1k(/,/g), semicolons: per1k(/;/g), colons: per1k(/:(?!\/\/)/g), dashes: per1k(/—|–|\s-\s/g), parentheses: per1k(/\(/g),
+      questions: per1k(/\?/g), exclamations: per1k(/!/g), contractions: per1k(/\b\w+['’](?:s|t|re|ve|ll|d|m)\b/gi),
+      'I, me, my': per1k(/\b(?:i|me|my|mine|myself)\b/gi), 'we, us, our': per1k(/\b(?:we|us|our|ours|ourselves)\b/gi), 'you, your': per1k(/\b(?:you|your|yours|yourself)\b/gi),
+      'figures': per1k(/\b\d[\d,.]*\b/g),
+    },
+    functionWords: fw,
+  };
+}
+// Build a voice from samples: each sample of 60 words or more counts once.
+export function buildVoice(samples) {
+  const measured = samples.map((t) => voiceFeatures(t)).filter((m) => m.words >= 60);
+  if (measured.length < 3) throw new Error(`A voice needs at least 3 samples of 60 words or more; found ${measured.length}. Add more writing the person wrote themselves.`);
+  const features = {};
+  for (const k of Object.keys(measured[0].features)) { const st = stats(measured.map((m) => m.features[k])); features[k] = { mean: +st.mean.toFixed(4), sd: +st.sd.toFixed(4) }; }
+  const functionWords = {};
+  for (const w of FUNCTION_WORDS) functionWords[w] = +(measured.reduce((a, m) => a + m.functionWords[w], 0) / measured.length).toFixed(3);
+  const gb = samples.reduce((a, t) => a + (t.match(GB_RE) || []).length, 0), us = samples.reduce((a, t) => a + (t.match(US_RE) || []).length, 0);
+  return { slopGuardVoice: 1, version: RULES.version, samples: measured.length, words: measured.reduce((a, m) => a + m.words, 0), features, functionWords, spelling: { gb, us } };
+}
+const cosine = (a, b) => { let d = 0, x = 0, y = 0; for (const k of Object.keys(b)) { d += (a[k] || 0) * b[k]; x += (a[k] || 0) ** 2; y += b[k] ** 2; } return x && y ? d / Math.sqrt(x * y) : 0; };
+// Compare a draft with a voice: a 0-100 match and the features furthest from it.
+export function compareVoice(text, voice) {
+  const m = voiceFeatures(text);
+  if (m.words < 80) return { words: m.words, match: null, drift: [] };
+  const drift = [];
+  for (const [k, v] of Object.entries(voice.features)) {
+    // a spread no smaller than one use in a 200-word post, so a single "you" is not a crisis
+    const floor = { 'sentence length': 1.5, 'paragraph length': 12, 'word length': 0.2, 'sentence spread': 0.08, 'short sentences': 0.08, 'long sentences': 0.06 }[k] ?? 6;
+    const sd = Math.max(v.sd, Math.abs(v.mean) * 0.15, floor);
+    const z = (m.features[k] - v.mean) / sd;
+    drift.push({ feature: k, draft: m.features[k], voice: v.mean, z });
+  }
+  drift.sort((a, b) => Math.abs(b.z) - Math.abs(a.z));
+  // Each feature scores 1 at the voice's mean and falls away with distance; every feature far
+  // outside the samples' range costs a further 15%. Function words count for a fifth, because on
+  // short texts they are noisy.
+  const kernel = drift.reduce((a, d) => a + Math.exp(-(d.z ** 2) / 8), 0) / drift.length;
+  const far = drift.filter((d) => Math.abs(d.z) >= 2.5).length;
+  const fw = cosine(m.functionWords, voice.functionWords);
+  const match = Math.round(100 * kernel * 0.85 ** far * (0.8 + 0.2 * Math.max(0, Math.min(1, (fw - 0.5) / 0.5))));
+  return { words: m.words, match: Math.max(0, Math.min(100, match)), functionWordSimilarity: +fw.toFixed(3), drift: drift.filter((d) => Math.abs(d.z) >= 2.5) };
+}
+const fmt = (k, x) => (/spread|short|long sentences/.test(k) && !/length/.test(k) ? `${Math.round(x * 100)}%` : x >= 10 ? x.toFixed(0) : x.toFixed(1));
+// British and American spellings with one clear meaning each (pairs like program, meter and
+// check are left out because both spellings are right in some sense).
+const SPELLING = [['colour', 'color'], ['flavour', 'flavor'], ['honour', 'honor'], ['labour', 'labor'], ['neighbour', 'neighbor'], ['favour', 'favor'], ['behaviour', 'behavior'], ['endeavour', 'endeavor'], ['harbour', 'harbor'], ['humour', 'humor'], ['rumour', 'rumor'], ['vapour', 'vapor'], ['centre', 'center'], ['theatre', 'theater'], ['fibre', 'fiber'], ['litre', 'liter'], ['calibre', 'caliber'], ['sombre', 'somber'], ['catalogue', 'catalog'], ['dialogue', 'dialog'], ['analogue', 'analog'], ['defence', 'defense'], ['offence', 'offense'], ['pretence', 'pretense'], ['analyse', 'analyze'], ['paralyse', 'paralyze'], ['organise', 'organize'], ['organisation', 'organization'], ['realise', 'realize'], ['recognise', 'recognize'], ['apologise', 'apologize'], ['prioritise', 'prioritize'], ['optimise', 'optimize'], ['minimise', 'minimize'], ['maximise', 'maximize'], ['emphasise', 'emphasize'], ['summarise', 'summarize'], ['customise', 'customize'], ['visualise', 'visualize'], ['standardise', 'standardize'], ['travelled', 'traveled'], ['travelling', 'traveling'], ['cancelled', 'canceled'], ['cancelling', 'canceling'], ['modelling', 'modeling'], ['labelled', 'labeled'], ['labelling', 'labeling'], ['grey', 'gray'], ['aluminium', 'aluminum'], ['sceptical', 'skeptical'], ['mould', 'mold'], ['plough', 'plow'], ['jewellery', 'jewelry'], ['manoeuvre', 'maneuver'], ['paediatric', 'pediatric'], ['haemorrhage', 'hemorrhage'], ['oesophagus', 'esophagus'], ['anaesthetic', 'anesthetic'], ['enrolment', 'enrollment'], ['fulfil', 'fulfill'], ['instalment', 'installment'], ['ageing', 'aging'], ['cheque', 'check-NONE'], ['kerb', 'curb-NONE']].filter(([, u]) => !u.endsWith('-NONE'));
+const inflect = (w) => `${w}(?:s|d|ed|ing|es|er|ers|ation|ations)?`;
+const GB_RE = new RegExp(`\\b(?:${SPELLING.map(([g]) => inflect(g)).join('|')})\\b`, 'gi');
+const US_RE = new RegExp(`\\b(?:${SPELLING.map(([, u]) => inflect(u)).join('|')})\\b`, 'gi');
+// Extra checks that need a profile, a voice or a target: reading grade, spelling, voice drift.
+function profileDetectors(text, kind, file, context, profile, voice) {
+  const out = [];
+  if (kind !== 'text' && kind !== 'html') return out;
+  const prose = kind === 'html' ? textOf(stripHtml(text).replace(/<(code|pre|kbd|samp|blockquote|q|nav|footer)\b[\s\S]*?<\/\1>/gi, blank).replace(/<\/(p|li|h[1-6]|div)>/gi, '$&\n\n')) : text;
+  const target = { copy: 9, web: 9, app: 9, deck: 10, doc: 13, ...(profile?.readingGrade || {}) }[context || (kind === 'html' ? 'web' : 'doc')];
+  const g = readingGrade(prose);
+  if (g != null && target != null && g > target) out.push({ detector: 'reading-grade', file, line: 1, evidence: `grade ${g}`, message: `Reads at about grade ${g}; this context aims for ${target} or below. Shorter sentences and plainer words bring it down.` });
+  const sp = profile?.spelling;
+  if (sp) {
+    const wrong = [...(prose.match(sp === 'en-GB' ? US_RE : GB_RE) || [])];
+    const masked = maskProse(prose);
+    const hits = wrong.filter((w) => new RegExp(`\\b${w}\\b`).test(masked));
+    if (hits.length) out.push({ detector: 'spelling-variant', file, line: lineAt(text, Math.max(0, text.indexOf(hits[0]))), evidence: hits[0], message: `${hits.length} word${hits.length > 1 ? 's' : ''} in ${sp === 'en-GB' ? 'American' : 'British'} spelling (${[...new Set(hits.map((h) => h.toLowerCase()))].slice(0, 5).join(', ')}); this profile uses ${sp}.` });
+  }
+  if (voice) {
+    const v = compareVoice(prose, voice);
+    if (v.match != null && v.drift.length) out.push({ detector: 'voice-drift', file, line: 1, evidence: `voice match ${v.match}/100`, message: `Further from the voice than its samples usually are: ${v.drift.slice(0, 3).map((d) => `${d.feature} ${fmt(d.feature, d.draft)} (samples ${fmt(d.feature, d.voice)})`).join('; ')}.`, severity: v.drift.length >= 3 ? 'medium' : 'low' });
+  }
+  return out;
+}
+// Facts an edit must keep: figures with their units, names, and negations.
+const FACT_FIGURE = /(?:[$€£¥₹]\s?|\b(?:RM|USD|MYR|EUR|GBP|SGD|INR)\s?)?\b\d[\d,]*(?:\.\d+)?(?:\s?%|\s?(?:percent|k|m|bn|million|billion|thousand|km|kg|g|mg|ml|l|ms|px|gb|mb|tb|hours?|hrs?|days?|weeks?|months?|years?|x|times)\b|(?![\w.]))/gi;
+const NEGATION = /\b(?:not|no|never|none|nobody|nothing|neither|nor|without|cannot)\b|n['’]t\b/gi;
+const normFig = (x) => x.toLowerCase().replace(/[\s,]/g, '').replace(/percent$/, '%').replace(/hrs?$|hours?$/, 'h');
+// Capitalised names; a single capitalised word that only starts a sentence is not counted.
+const namesIn = (t) => new Set([...t.matchAll(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+|[A-Z][a-z]+|[A-Z]{2,}[a-z]*)\b/g)].filter((m) => /\s/.test(m[1]) || /[A-Z]{2}/.test(m[1]) || !/(?:^|[.!?]\s+|\n\s*)$/.test(t.slice(Math.max(0, m.index - 3), m.index))).map((m) => m[1]).filter((x) => !/^(I|A|The|This|That|It|We|They|You|He|She|In|On|At|If|But|And|Or|So)$/.test(x)));
+export function factCheck(before, after, file = '<after>') {
+  const out = [];
+  const b = maskProse(before, { quotes: false }), a = maskProse(after, { quotes: false });
+  const figs = (t) => { const m = new Map(); for (const x of t.match(FACT_FIGURE) || []) { const k = normFig(x); if (/\d/.test(k)) m.set(k, (m.get(k) || 0) + 1); } return m; };
+  const fb = figs(b), fa = figs(a);
+  const lost = [...fb.keys()].filter((k) => !fa.has(k)), added = [...fa.keys()].filter((k) => !fb.has(k));
+  if (lost.length) out.push({ detector: 'fact-change', file, line: 1, evidence: lost.slice(0, 6).join(', '), message: `${lost.length} figure${lost.length > 1 ? 's' : ''} from the earlier version ${lost.length > 1 ? 'are' : 'is'} gone (${lost.slice(0, 6).join(', ')}): check the edit kept the facts.` });
+  if (added.length) out.push({ detector: 'fact-change', file, line: lineAt(after, Math.max(0, after.indexOf((after.match(FACT_FIGURE) || []).find((x) => added.includes(normFig(x))) || ''))), evidence: added.slice(0, 6).join(', '), message: `${added.length} new figure${added.length > 1 ? 's' : ''} that the earlier version did not have (${added.slice(0, 6).join(', ')}): check each one has a source.` });
+  const lostN = [...namesIn(b)].filter((x) => !new RegExp(`\\b${escapeRe(x)}\\b`).test(a));
+  if (lostN.length) out.push({ detector: 'fact-change', file, line: 1, evidence: lostN.slice(0, 6).join(', '), message: `Name${lostN.length > 1 ? 's' : ''} dropped by the edit: ${lostN.slice(0, 6).join(', ')}.`, severity: 'low' });
+  const gb = (b.match(NEGATION) || []).length, ga = (a.match(NEGATION) || []).length;
+  if (gb !== ga) out.push({ detector: 'fact-change', file, line: 1, evidence: `negations ${gb} → ${ga}`, message: `The number of negations changed from ${gb} to ${ga} (not, no, never, without…): check no statement flipped its meaning.`, severity: Math.abs(gb - ga) >= 2 ? 'medium' : 'low' });
+  return out;
+}
+// digits are left out of the key, so a finding whose evidence is a count or a figure matches its earlier self
+const findingKey = (f) => `${f.rule}|${String(f.evidence).toLowerCase().replace(/\d+(?:[.,]\d+)*/g, '#').replace(/\s+/g, ' ').trim()}`;
+export function diffFindings(before, after) {
+  const bk = new Set(before.map(findingKey)), ak = new Set(after.map(findingKey));
+  return { added: after.filter((f) => !bk.has(findingKey(f))), removed: before.filter((f) => !ak.has(findingKey(f))), kept: after.filter((f) => bk.has(findingKey(f))).length };
+}
+
 // ---- v2.2: profiles, genres, hard and soft findings, the trend score ------------------------
 // A profile is an optional JSON file the user supplies (examples in profiles/). With none, the
 // neutral defaults in rules.json apply. Hard rules stay on unless the profile sets allowHardOff.
@@ -1200,7 +1332,16 @@ export function loadProfile(file) {
   if (p.genre && !RULES.genres[p.genre]) throw new Error(`Profile ${file}: unknown genre "${p.genre}". Use one of: ${Object.keys(RULES.genres).join(', ')}.`);
   p.ban = (p.ban || []).map((b) => (typeof b === 'string' ? { phrase: b } : b));
   p.dir = path.dirname(path.resolve(file));
+  if (p.spelling && !['en-GB', 'en-US'].includes(p.spelling)) throw new Error(`Profile ${file}: spelling must be "en-GB" or "en-US", not "${p.spelling}".`);
+  for (const [c, g] of Object.entries(p.readingGrade || {})) if (!RULES.contexts[c] || typeof g !== 'number') throw new Error(`Profile ${file}: readingGrade needs a known context and a number, not ${c}: ${g}.`);
+  if (typeof p.voice === 'string') p.voice = loadVoice(path.resolve(p.dir, p.voice));
   return p;
+}
+export function loadVoice(file) {
+  let v;
+  try { v = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { throw new Error(`Voice file ${file} could not be read: ${e.message}`); }
+  if (v.slopGuardVoice !== 1 || !v.features || !v.functionWords) throw new Error(`${file} is not a voice file. Make one with --build-voice <samples>.`);
+  return v;
 }
 const LOWER = { high: 'medium', medium: 'low', low: 'low' };
 const escapeRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1278,12 +1419,44 @@ function cli() {
   if (args.includes('--genres')) { process.stdout.write(Object.entries(RULES.genres).map(([k, g]) => `- ${k}: ${g.label}. Off: ${g.off.join(', ') || 'none'}. Lowered: ${g.lower.join(', ') || 'none'}.`).join('\n') + '\n'); return; }
   const failOn = opt('--fail-on') || (args.includes('--strict') ? 'high' : null);
   if (failOn && !['hard', 'high', 'medium', 'low'].includes(failOn)) { console.error(`--fail-on takes hard, high, medium or low, not "${failOn}".`); process.exitCode = 2; return; }
-  const skip = new Set(['--context', '--json', '--year', '--pairing', '--profile', '--genre', '--history', '--fail-on', '--kind', '--name']);
+  const skip = new Set(['--context', '--json', '--year', '--pairing', '--profile', '--genre', '--history', '--fail-on', '--kind', '--name', '--voice', '--split', '--before', '--git-base', '--build-voice']);
+  // v2.4: build a voice file from samples the person wrote themselves, and print it
+  if (args.includes('--build-voice')) {
+    const from = args.filter((a, i) => !a.startsWith('--') && !skip.has(args[i - 1]) || args[i - 1] === '--build-voice');
+    // split before each match, so a heading stays with its sample and is dropped as a heading
+    const split = opt('--split') ? new RegExp(`(?=${opt('--split')})`, 'm') : null;
+    const samples = from.flatMap((p) => walk(p)).filter((f) => ['text', 'html'].includes(EXT[path.extname(f).toLowerCase()])).flatMap((f) => { const c = fs.readFileSync(f, 'utf8'); const t = EXT[path.extname(f).toLowerCase()] === 'html' ? textOf(stripHtml(c)) : c; return split ? t.split(split).filter((x) => x.trim()) : [t]; });
+    try { process.stdout.write(JSON.stringify(buildVoice(samples), null, 2) + '\n'); } catch (e) { console.error(e.message); process.exitCode = 2; }
+    return;
+  }
+  let voice;
+  if (opt('--voice')) { try { voice = loadVoice(opt('--voice')); } catch (e) { console.error(e.message); process.exitCode = 2; return; } }
+  voice ||= profile?.voice;
   const targets = args.filter((a, i) => !a.startsWith('--') && !skip.has(args[i - 1]));
   // v2.3: --stdin checks text piped in, such as a commit message or a pull request description
   const stdin = args.includes('--stdin') ? fs.readFileSync(0, 'utf8') : null;
   if (!targets.length && stdin == null) { console.error('Usage: node check-slop.mjs <file or folder>... [--context web|app|deck|doc|copy|image|code] [--json out.json] [--strict]'); process.exitCode = 2; return; }
-  const res = stdin ? checkStdin(stdin, { context, year: +(opt('--year') || new Date().getFullYear()), profile, genre, kind: opt('--kind') || 'text', name: opt('--name') || '<stdin>' }) : checkPaths(targets, { context, year: +(opt('--year') || new Date().getFullYear()), pairing: opt('--pairing'), profile, genre });
+  const year = +(opt('--year') || new Date().getFullYear());
+  const res = stdin ? checkStdin(stdin, { context, year, profile, genre, voice, kind: opt('--kind') || 'text', name: opt('--name') || '<stdin>' }) : checkPaths(targets, { context, year, pairing: opt('--pairing'), profile, genre, voice });
+  // v2.4: compare with an earlier version, from a file (--before) or from git (--git-base <rev>)
+  let diff = null;
+  if (opt('--before') || opt('--git-base')) {
+    const files = stdin ? [] : targets.flatMap((p) => walk(p));
+    if (opt('--before') && files.length !== 1) { console.error('--before compares one file: name exactly one target.'); process.exitCode = 2; return; }
+    diff = { added: [], removed: [], kept: 0, facts: [] };
+    for (const f of files) {
+      let before = null;
+      if (opt('--before')) before = fs.readFileSync(opt('--before'), 'utf8');
+      else { try { before = execFileSync('git', ['-C', path.dirname(path.resolve(f)), 'show', `${opt('--git-base')}:./${path.basename(f)}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 26 }); } catch { before = null; } }
+      const kind = EXT[path.extname(f).toLowerCase()];
+      const now = res.findings.filter((x) => x.file === f);
+      if (before == null) { diff.added.push(...now); continue; }
+      const d = diffFindings(checkText(before, kind, f, { context, year, profile, genre, voice }), now);
+      diff.added.push(...d.added); diff.removed.push(...d.removed); diff.kept += d.kept;
+      if (kind === 'text' || kind === 'html') diff.facts.push(...applyPolicy(resolve(factCheck(kind === 'html' ? textOf(stripHtml(before)) : before, kind === 'html' ? textOf(stripHtml(fs.readFileSync(f, 'utf8'))) : fs.readFileSync(f, 'utf8'), f), context ? [context] : DEFAULT_CONTEXT[kind]), { profile, genre }));
+    }
+    res.findings.push(...diff.facts);
+  }
   const order = { high: 0, medium: 1, low: 2 };
   res.findings.sort((a, b) => order[a.severity] - order[b.severity] || a.file.localeCompare(b.file) || a.line - b.line);
   const counts = { high: 0, medium: 0, low: 0 };
@@ -1293,6 +1466,13 @@ function cli() {
   const setting = [context && `context: ${context}`, (genre || profile?.genre) && `genre: ${genre || profile.genre}`, profile && `profile: ${profile.name || path.basename(profilePath)}`].filter(Boolean).join(', ');
   console.log(`\nslop-guard: ${res.files} file(s), ${res.findings.length} finding(s): ${counts.high} high, ${counts.medium} medium, ${counts.low} low; ${hard} hard${setting ? ` (${setting})` : ''}. Hits are evidence for a reviewer, not a verdict.`);
   if (profile?.allowHardOff) console.log('Note: this profile may switch off hard rules (allowHardOff), so defects can go unreported.');
+  if (diff) {
+    console.log(`Compared with ${opt('--before') || `git ${opt('--git-base')}`}: ${diff.added.length} new finding(s), ${diff.removed.length} fixed, ${diff.kept} unchanged${diff.facts.length ? `, ${diff.facts.length} fact check(s) to review` : ', facts kept'}.`);
+    for (const f of diff.added.slice(0, 15)) console.log(`  + ${f.rule}  ${path.relative(process.cwd(), f.file)}:${f.line}  ${f.evidence}`);
+    for (const f of diff.removed.slice(0, 15)) console.log(`  - ${f.rule}  ${String(f.evidence).slice(0, 100)}`);
+  }
+  if (voice && !stdin) for (const f of res.scores.filter((x) => x.words >= 80)) { const v = compareVoice(fs.readFileSync(f.file, 'utf8'), voice); if (v.match != null) console.log(`Voice match: ${v.match}/100 for ${path.relative(process.cwd(), f.file)} (function words ${Math.round(v.functionWordSimilarity * 100)}% alike). A guide to drafting, not proof of who wrote it.`); }
+  if (voice && stdin) { const v = compareVoice(stdin, voice); if (v.match != null) console.log(`Voice match: ${v.match}/100. A guide to drafting, not proof of who wrote it.`); }
   const history = opt('--history');
   let previous = {};
   if (history && fs.existsSync(history)) for (const l of fs.readFileSync(history, 'utf8').split('\n')) { try { const h = JSON.parse(l); previous[h.file] = h.score; } catch { /* a malformed history line is skipped, not fatal */ } }
@@ -1303,7 +1483,7 @@ function cli() {
     if (scored.length > 1 && scored.length <= 20) for (const x of scored) console.log(`  ${String(x.score).padStart(3)}  ${path.relative(process.cwd(), x.file)}${delta(x)}`);
   }
   if (history) { const at = new Date().toISOString(); fs.appendFileSync(history, scored.map((x) => JSON.stringify({ at, version: RULES.version, file: x.file, words: x.words, score: x.score, ...countBy(res.findings.filter((f) => f.file === x.file)) }) + '\n').join('')); }
-  if (opt('--json')) fs.writeFileSync(opt('--json'), JSON.stringify({ version: RULES.version, context: context || null, genre: genre || profile?.genre || null, profile: profile?.name || null, counts: { ...counts, hard }, ...res }, null, 2));
+  if (opt('--json')) fs.writeFileSync(opt('--json'), JSON.stringify({ version: RULES.version, context: context || null, genre: genre || profile?.genre || null, profile: profile?.name || null, counts: { ...counts, hard }, ...res, ...(diff ? { diff: { added: diff.added.length, removed: diff.removed.length, kept: diff.kept, facts: diff.facts } } : {}) }, null, 2));
   const failing = failOn === 'hard' ? hard : failOn ? res.findings.filter((f) => order[f.severity] <= order[failOn]).length : 0;
   process.exitCode = failing ? 1 : 0;
 }

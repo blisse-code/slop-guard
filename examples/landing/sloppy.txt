@@ -114,6 +114,8 @@ MEDIUM build-slogans        sloppy.html:79  "Built with React" describes how it 
        Built with React
 MEDIUM build-slogans        sloppy.html:79  "Powered by AI" describes how it was made, not what it does for the reader.
        Powered by AI
+LOW    reading-grade        sloppy.html:1  Reads at about grade 12.1; this context aims for 9 or below. Shorter sentences and plainer words bring it down.
+       grade 12.1
 LOW    off-scale-values     sloppy.html:1  17 different colours typed by hand outside the tokens: keep a palette as tokens.
        17 literal colours outside custom properties
 LOW    large-pills          sloppy.html:17  Pill-shaped button: use straight or subtly rounded corners unless pills are the deliberate shape language.
@@ -155,5 +157,5 @@ LOW    fake-discount        sloppy.html:73  Struck-through price: show a discoun
 LOW    most-popular         sloppy.html:73  "Most popular": keep only if it is actually the plan most people pick.
        Most popular
 
-slop-guard: 1 file(s), 78 finding(s): 4 high, 54 medium, 20 low; 16 hard (context: web). Hits are evidence for a reviewer, not a verdict.
+slop-guard: 1 file(s), 79 finding(s): 4 high, 54 medium, 21 low; 16 hard (context: web). Hits are evidence for a reviewer, not a verdict.
 Trend score: 0/100. Use it to compare versions of the same work over time; it is not a grade.

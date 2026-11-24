@@ -46,6 +46,9 @@ node check-slop.mjs --rubric --context doc    # only the rows you check by eye
 node check-slop.mjs --genres                  # the genres and what each one relaxes
 node check-slop.mjs src --context code         # a code change in JS, TS or Python
 git log -1 --format=%B | node check-slop.mjs --stdin --context doc   # a commit message
+node check-slop.mjs post.md --context copy --git-base HEAD           # what an edit added, fixed and changed
+node check-slop.mjs --build-voice my-posts/ > voice.json              # a voice from someone's own writing
+node check-slop.mjs draft.md --context copy --voice voice.json
 gh pr view 12 --json body -q .body | node check-slop.mjs --stdin --context doc
 ```
 
@@ -63,6 +66,13 @@ gh pr view 12 --json body -q .body | node check-slop.mjs --stdin --context doc
 - **Claims with no source.** "The fastest platform", "proven to", "award-winning" and figures like "40% faster" are flagged unless the sentence, or the next one, names or links a source. Figures also pass when the document has a Sources or References section.
 - **The same sentence across a site.** When you check a folder, a sentence on three or more pages or documents is flagged. Navigation, headers, footers and asides are left out, because they repeat by design.
 - **Text outside the page body.** Alt text, titles, labels and meta descriptions in HTML, the text in SVG files, words in JSX and TSX components, and anything piped in with `--stdin` (commit messages, pull request descriptions) all get the prose checks.
+
+## Edits, voice and reading level
+
+- **Diff mode.** `--before old.md` (one file) or `--git-base <rev>` (each file against git) reports which findings an edit added, which it fixed and which stayed. It also checks that the facts survived: figures that disappeared or appeared, names that were dropped, and a change in the number of negations (not, no, never, without), any of which can flip a meaning.
+- **Voice.** `--build-voice <files or folders>` measures writing a person did themselves: sentence and paragraph lengths, punctuation, pronouns, contractions and common function words. Use `--split '^## '` to treat each section of one file as its own sample. `--voice voice.json`, or `"voice"` in a profile, compares a draft with it. You get a 0–100 match and a `voice-drift` finding that names the features furthest from the samples. The voice file holds numbers and function words only, never sentences or content words. A match score is a guide to drafting, not proof of who wrote something. Keep a person's samples and voice file private. [examples/voice/](examples/voice/) shows a made-up writer.
+- **Reading grade by context.** Prose of 60 words or more gets a Flesch-Kincaid grade. Copy and web pages aim for grade 9 or below, decks 10 and documents 13, and a profile can set its own (`"readingGrade": { "copy": 7 }`). Legal, clinical, academic and fiction writing are left out.
+- **Spelling.** A profile with `"spelling": "en-GB"` or `"en-US"` flags words spelled the other way: colour or color, organise or organize, centre or center, and about 60 more pairs with one clear meaning each.
 
 ## Genres, profiles, hard and soft
 
@@ -88,10 +98,10 @@ Each file of prose with 150 words or more gets a 0–100 trend score, weighted b
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/contexts-dark.svg">
-  <img alt="Rules per context: web 149 rules with 112 found by the checker; app 106 rules with 77 found by the checker; deck 115 rules with 89 found by the checker; doc 72 rules with 58 found by the checker; copy 55 rules with 48 found by the checker; image 8 rules with 4 found by the checker; code 17 rules with 15 found by the checker." src="docs/contexts-light.svg" width="100%">
+  <img alt="Rules per context: web 153 rules with 116 found by the checker; app 109 rules with 80 found by the checker; deck 119 rules with 93 found by the checker; doc 76 rules with 62 found by the checker; copy 59 rules with 52 found by the checker; image 8 rules with 4 found by the checker; code 17 rules with 15 found by the checker." src="docs/contexts-light.svg" width="100%">
 </picture>
 
-All 182 rules, by context: [RULES.md](RULES.md).
+All 186 rules, by context: [RULES.md](RULES.md).
 
 Text people read on a page uses curly quotes and apostrophes. Code, Markdown source, commands and attributes keep straight ones. The checker flags straight quotes only in the visible text of HTML.
 

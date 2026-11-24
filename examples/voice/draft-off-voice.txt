@@ -1,0 +1,9 @@
+MEDIUM voice-drift          draft-off-voice.md:1  Further from the voice than its samples usually are: sentence length 38 (samples 8.0); long sentences 100% (samples 0%); I, me, my 0.0 (samples 123).
+       voice match 17/100
+LOW    plain-words          draft-off-voice.md:1  "commence": use the plain word.
+       commence
+LOW    reading-grade        draft-off-voice.md:1  Reads at about grade 29.2; this context aims for 9 or below. Shorter sentences and plainer words bring it down.
+       grade 29.2
+
+slop-guard: 1 file(s), 3 finding(s): 0 high, 1 medium, 2 low; 0 hard (context: copy). Hits are evidence for a reviewer, not a verdict.
+Voice match: 17/100 for draft-off-voice.md (function words 84% alike). A guide to drafting, not proof of who wrote it.

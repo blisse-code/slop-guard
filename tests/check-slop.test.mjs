@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
-import { checkText, checkPaths, checkPairing, typeChecks, contrast, RULES, rulesFor, maskProse, loadProfile, applyPolicy, trendScore, proseWordCount } from '../check-slop.mjs';
+import { checkText, checkPaths, checkPairing, typeChecks, contrast, RULES, rulesFor, maskProse, loadProfile, applyPolicy, trendScore, proseWordCount, readingGrade, buildVoice, compareVoice, factCheck, diffFindings, loadVoice } from '../check-slop.mjs';
 
 const F = (n) => fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', n), 'utf8');
 const rulesHit = (fs_) => new Set(fs_.map((f) => f.rule));
@@ -497,4 +497,76 @@ test('v2.3 text outside the page body: alt text, meta descriptions, SVG text, JS
   const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
   const out = execFileSync(process.execPath, [path.join(root, 'check-slop.mjs'), '--stdin', '--context', 'doc'], { input: 'Refactor: a seamless, game-changing update to the parser.\n', encoding: 'utf8' });
   assert.match(out, /hype-copy\s+<stdin>:1/);
+});
+
+// ---- v2.4: reading grade, spelling, voice, diff with fact check ----
+const CASUAL = [
+  "I took the new bus to work today. It's quicker than I thought. I didn't miss the car at all, and I read half a book on the way. The driver knew every stop by name. I'll try the early one tomorrow. My neighbour says it's always full by eight, so I'll leave at seven. We'll see. If it works for a week, I'm selling the car. That's the plan, anyway. I can't think of a good reason not to, and the money's better spent on the kids' swimming lessons.",
+  "I fixed the gate this morning. It took me an hour, not ten minutes. I'd bought the wrong screws, of course. My daughter laughed and handed me the right ones from the shed. She's twelve and she's already better at this than I am. We painted it blue after lunch. It's a bit bright. I like it, though, and the dog doesn't care. Next week I'll do the fence. I've said that before. This time I mean it, and I've bought the paint already.",
+  "I cooked for eight people on Sunday. I'd never done that before. It's harder than it looks on television. The rice burned, the curry was fine, and nobody noticed the rice. My brother brought dessert. He always does. We sat outside until it got dark and the mosquitoes found us. I didn't take a single photo. I'm glad I didn't. I'll remember it anyway, and next time I'll ask someone else to watch the rice while I talk.",
+  "I started running again in March. I couldn't do a kilometre without stopping. Now I can do five, slowly. It's not fast. I don't care. I run before work, when the streets are empty and the air's still cool. My knees complain on the hills. I've learned to listen to them. Some days I walk instead, and that's fine too. I'm not training for anything. I just like how the day feels after it, and I sleep better than I have in years.",
+];
+const FORMAL = 'The municipal transport authority has undertaken a comprehensive evaluation of the proposed bus network reconfiguration, considering operational efficiency, infrastructural constraints, demographic projections and the anticipated environmental consequences associated with each of the alternative scenarios presented to the committee. Following extensive consultation with stakeholders representing commercial, residential and institutional interests throughout the metropolitan region, the authority has determined that the preferred configuration offers the most favourable balance between capital expenditure, recurring maintenance obligations and projected ridership growth over the subsequent decade. Implementation is accordingly scheduled to commence during the forthcoming financial year, subject to the availability of appropriated funds and to the satisfactory completion of the statutory environmental assessment process required under the applicable regulatory framework.';
+test('v2.4 reading grade by context, and a profile can set the target', () => {
+  assert.ok(readingGrade(CASUAL[0]) < 8, `casual ${readingGrade(CASUAL[0])}`);
+  assert.ok(readingGrade(FORMAL) > 16, `formal ${readingGrade(FORMAL)}`);
+  assert.equal(readingGrade('Too short.'), null);
+  plant(FORMAL, 'text', 'copy', 'reading-grade');
+  quiet(CASUAL[0], 'text', 'copy', 'reading-grade');
+  const strict = loadProfile(tmp('g.json', JSON.stringify({ readingGrade: { copy: 2 } })));
+  assert.ok(rulesHit(checkText(CASUAL[2], 'text', 'x.md', { context: 'copy', profile: strict })).has('reading-grade'));
+  assert.ok(!rulesHit(checkText(FORMAL, 'text', 'x.md', { context: 'copy', genre: 'legal' })).has('reading-grade'));
+});
+test('v2.4 spelling: a profile picks British or American, quoted words are left alone', () => {
+  const gb = loadProfile(tmp('gb.json', '{"spelling":"en-GB"}')), us = loadProfile(tmp('us.json', '{"spelling":"en-US"}'));
+  const hit = (t, p) => rulesHit(checkText(t, 'text', 'x.md', { context: 'doc', profile: p })).has('spelling-variant');
+  assert.ok(hit('We will organize the colors by center.', gb));
+  assert.ok(!hit('We will organise the colours by centre.', gb));
+  assert.ok(hit('We will organise the colours by centre.', us));
+  assert.ok(!hit('The brief said "color" and we kept it.', gb));
+  assert.ok(!hit('We will organize the colors.', undefined));
+  assert.throws(() => loadProfile(tmp('bad.json', '{"spelling":"en-AU"}')), /en-GB" or "en-US/);
+});
+test('v2.4 voice: built from samples, stores no content words, and tells a matching draft from a different one', () => {
+  const voice = buildVoice(CASUAL.slice(0, 3));
+  assert.equal(voice.samples, 3);
+  const keys = new Set(Object.keys(voice.functionWords));
+  for (const w of ['bus', 'gate', 'rice', 'curry', 'daughter']) assert.ok(!keys.has(w) && !JSON.stringify(voice).includes(w), `voice file leaks "${w}"`);
+  const same = compareVoice(CASUAL[3], voice), other = compareVoice(FORMAL, voice);
+  assert.ok(same.match > other.match + 25, `same ${same.match} vs other ${other.match}`);
+  assert.ok(other.drift.length >= 2 && same.drift.length <= 1, JSON.stringify({ same: same.drift.map((d) => d.feature), other: other.drift.map((d) => d.feature) }));
+  assert.ok(rulesHit(checkText(FORMAL, 'text', 'x.md', { context: 'doc', voice })).has('voice-drift'));
+  assert.ok(!rulesHit(checkText(CASUAL[3], 'text', 'x.md', { context: 'copy', voice })).has('voice-drift'));
+  assert.throws(() => buildVoice([CASUAL[0], 'Too short.']), /at least 3 samples/);
+  const vf = tmp('voice.json', JSON.stringify(voice));
+  const p = loadProfile(path.join(path.dirname(vf), (fs.writeFileSync(path.join(path.dirname(vf), 'p.json'), JSON.stringify({ voice: 'voice.json' })), 'p.json')));
+  assert.equal(p.voice.samples, 3);
+  assert.throws(() => loadVoice(tmp('nv.json', '{"a":1}')), /not a voice file/);
+});
+test('v2.4 fact check: dropped and new figures, dropped names, and flipped negations', () => {
+  const before = 'Loans rose 12% in May to 340 items. Siti Rahman runs the desk. The library does not charge a deposit.';
+  const ok = factCheck(before, 'In May, loans rose 12% to 340 items. Siti Rahman runs the desk, and the library does not charge a deposit.');
+  assert.deepEqual(ok, []);
+  const bad = factCheck(before, 'Loans rose 15% in May to 340 items. The desk is run by volunteers. The library charges a deposit.');
+  const msgs = bad.map((f) => f.message).join(' | ');
+  assert.match(msgs, /12%/); assert.match(msgs, /15%/); assert.match(msgs, /Siti Rahman/); assert.match(msgs, /negations changed from 1 to 0/);
+  const d = diffFindings([{ rule: 'hype-copy', evidence: 'seamless' }], [{ rule: 'hype-copy', evidence: 'Seamless' }, { rule: 'stock-lines', evidence: 'say goodbye to' }]);
+  assert.equal(d.added.length, 1); assert.equal(d.removed.length, 0); assert.equal(d.kept, 1);
+});
+test('v2.4 CLI: --build-voice with --split, --voice, --before and --git-base', () => {
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const run = (a, o = {}) => execFileSync(process.execPath, [path.join(root, 'check-slop.mjs'), ...a], { encoding: 'utf8', ...o });
+  const samples = tmp('samples.md', CASUAL.map((t, i) => `## Sample ${i + 1}\n\n${t}`).join('\n\n'));
+  const voice = JSON.parse(run(['--build-voice', samples, '--split', '^## ']));
+  assert.equal(voice.samples, 4);
+  const vf = tmp('v.json', JSON.stringify(voice));
+  assert.match(run([tmp('draft.md', FORMAL), '--context', 'doc', '--voice', vf]), /Voice match: \d+\/100/);
+  const after = tmp('after.md', 'Loans rose 15% in May. It is a seamless service.');
+  const out = run([after, '--context', 'doc', '--before', tmp('before.md', 'Loans rose 12% in May. It is a quick service.')]);
+  assert.match(out, /1 new finding\(s\), 0 fixed/); assert.match(out, /\+ hype-copy/); assert.ok(out.includes('facts-changed'));
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'slop-guard-git-'));
+  const git = (...a) => execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { encoding: 'utf8' });
+  git('init', '-q'); fs.writeFileSync(path.join(repo, 'post.md'), 'We cut wait times by 20%. Say goodbye to queues.'); git('add', '.'); git('commit', '-qm', 'one');
+  fs.writeFileSync(path.join(repo, 'post.md'), 'We cut wait times by 20%.');
+  assert.match(run([path.join(repo, 'post.md'), '--context', 'copy', '--git-base', 'HEAD']), /0 new finding\(s\), 1 fixed.*facts kept/s);
 });

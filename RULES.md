@@ -1,7 +1,7 @@
 <!-- slop-guard: ignore-file (this file lists the patterns themselves) -->
 # slop-guard rules by context
 
-Generated from `rules.json` v2.3.0 by `node check-slop.mjs --rules-md`. Do not edit by hand. 182 rules. These are design and writing preferences, not a test of who or what made something.
+Generated from `rules.json` v2.4.0 by `node check-slop.mjs --rules-md`. Do not edit by hand. 186 rules. These are design and writing preferences, not a test of who or what made something.
 
 ## web: Websites and landing pages
 
@@ -156,6 +156,10 @@ Generated from `rules.json` v2.3.0 by `node check-slop.mjs --rules-md`. Do not e
 | profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
 | repeated-across-files | The same sentence on three or more pages or documents (navigation, headers and footers aside). | Write each page for its own reader, or keep the shared text in one place and link to it. | machine | low |
 | unsourced-claims | Superlatives, proof words and figures with no source: "the fastest platform", "proven to", "40% faster". | Name who measured it and when, link the source, or drop the claim. | machine, judgement | medium |
+| reading-grade | Copy that reads above the grade its readers need: long sentences full of long words (Flesch-Kincaid; copy and web aim for grade 9, decks 10, documents 13, and a profile can set its own). | Shorter sentences and plainer words. Keep the hard words the subject needs and cut the rest. | machine | low |
+| spelling-variant | Mixing British and American spelling, against the profile's chosen one (colour and color in one piece). | Pick one spelling (set "spelling" in the profile) and use it throughout. | machine | low |
+| voice-drift | A draft that reads further from the writer's own voice than their samples usually do: sentence lengths, punctuation, pronouns and function words all measured against a voice file built from writing they did themselves. | Bring back the writer's own rhythm and habits; check the features the finding names against their samples. | machine, judgement | low |
+| facts-changed | An edit that drops or adds figures, drops names, or changes how many negations there are, so the facts or the meaning may have moved. | Check every figure, name and negation against the earlier version; a new figure needs a source. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).
@@ -275,6 +279,9 @@ Generated from `rules.json` v2.3.0 by `node check-slop.mjs --rules-md`. Do not e
 | ambiguous-dates | Dates that read two ways, like 03/04/2026. | Write the month as a word (3 April 2026), or use ISO dates (2026-04-03) in data. | machine | low |
 | straight-quotes | Straight quote marks and apostrophes (' and ") in text people read on a page, slide or document. | Use curly quotes and apostrophes in visible text. Keep straight quotes in code, Markdown source, commands and attributes. | machine, judgement | low |
 | profile-words | Words or phrases the active profile bans (a house style, a brand list, a writer's own list). | Follow the profile's note, or rewrite without the phrase. | machine | medium |
+| reading-grade | Copy that reads above the grade its readers need: long sentences full of long words (Flesch-Kincaid; copy and web aim for grade 9, decks 10, documents 13, and a profile can set its own). | Shorter sentences and plainer words. Keep the hard words the subject needs and cut the rest. | machine | low |
+| spelling-variant | Mixing British and American spelling, against the profile's chosen one (colour and color in one piece). | Pick one spelling (set "spelling" in the profile) and use it throughout. | machine | low |
+| facts-changed | An edit that drops or adds figures, drops names, or changes how many negations there are, so the facts or the meaning may have moved. | Check every figure, name and negation against the earlier version; a new figure needs a source. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).
@@ -403,6 +410,10 @@ Generated from `rules.json` v2.3.0 by `node check-slop.mjs --rules-md`. Do not e
 | signposted-structure | Say what you will say, say it, then say what you said: an introduction that lists every section and an ending that repeats it. | Open on the point, let headings carry the structure, and say each thing once. | machine, judgement | medium |
 | repeated-across-files | The same sentence on three or more pages or documents (navigation, headers and footers aside). | Write each page for its own reader, or keep the shared text in one place and link to it. | machine | low |
 | unsourced-claims | Superlatives, proof words and figures with no source: "the fastest platform", "proven to", "40% faster". | Name who measured it and when, link the source, or drop the claim. | machine, judgement | medium |
+| reading-grade | Copy that reads above the grade its readers need: long sentences full of long words (Flesch-Kincaid; copy and web aim for grade 9, decks 10, documents 13, and a profile can set its own). | Shorter sentences and plainer words. Keep the hard words the subject needs and cut the rest. | machine | low |
+| spelling-variant | Mixing British and American spelling, against the profile's chosen one (colour and color in one piece). | Pick one spelling (set "spelling" in the profile) and use it throughout. | machine | low |
+| voice-drift | A draft that reads further from the writer's own voice than their samples usually do: sentence lengths, punctuation, pronouns and function words all measured against a voice file built from writing they did themselves. | Bring back the writer's own rhythm and habits; check the features the finding names against their samples. | machine, judgement | low |
+| facts-changed | An edit that drops or adds figures, drops names, or changes how many negations there are, so the facts or the meaning may have moved. | Check every figure, name and negation against the earlier version; a new figure needs a source. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] On a phone (390px wide): nothing scrolls sideways, the main button is easy to find, and buttons and links are big enough to tap (at least 44px).
@@ -486,6 +497,10 @@ Generated from `rules.json` v2.3.0 by `node check-slop.mjs --rules-md`. Do not e
 | signposted-structure | Say what you will say, say it, then say what you said: an introduction that lists every section and an ending that repeats it. | Open on the point, let headings carry the structure, and say each thing once. | machine, judgement | medium |
 | repeated-across-files | The same sentence on three or more pages or documents (navigation, headers and footers aside). | Write each page for its own reader, or keep the shared text in one place and link to it. | machine | low |
 | unsourced-claims | Superlatives, proof words and figures with no source: "the fastest platform", "proven to", "40% faster". | Name who measured it and when, link the source, or drop the claim. | machine, judgement | medium |
+| reading-grade | Copy that reads above the grade its readers need: long sentences full of long words (Flesch-Kincaid; copy and web aim for grade 9, decks 10, documents 13, and a profile can set its own). | Shorter sentences and plainer words. Keep the hard words the subject needs and cut the rest. | machine | low |
+| spelling-variant | Mixing British and American spelling, against the profile's chosen one (colour and color in one piece). | Pick one spelling (set "spelling" in the profile) and use it throughout. | machine | low |
+| voice-drift | A draft that reads further from the writer's own voice than their samples usually do: sentence lengths, punctuation, pronouns and function words all measured against a voice file built from writing they did themselves. | Bring back the writer's own rhythm and habits; check the features the finding names against their samples. | machine, judgement | low |
+| facts-changed | An edit that drops or adds figures, drops names, or changes how many negations there are, so the facts or the meaning may have moved. | Check every figure, name and negation against the earlier version; a new figure needs a source. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] At first glance: someone can tell what the page is for and what to click within five seconds.
@@ -551,6 +566,10 @@ Generated from `rules.json` v2.3.0 by `node check-slop.mjs --rules-md`. Do not e
 | recap-endings | An ending that restates the opening: the last paragraph says again what the first one said. | End on something new: the decision, the next step, the open question or the cost. | machine, judgement | low |
 | repeated-across-files | The same sentence on three or more pages or documents (navigation, headers and footers aside). | Write each page for its own reader, or keep the shared text in one place and link to it. | machine | low |
 | unsourced-claims | Superlatives, proof words and figures with no source: "the fastest platform", "proven to", "40% faster". | Name who measured it and when, link the source, or drop the claim. | machine, judgement | medium |
+| reading-grade | Copy that reads above the grade its readers need: long sentences full of long words (Flesch-Kincaid; copy and web aim for grade 9, decks 10, documents 13, and a profile can set its own). | Shorter sentences and plainer words. Keep the hard words the subject needs and cut the rest. | machine | low |
+| spelling-variant | Mixing British and American spelling, against the profile's chosen one (colour and color in one piece). | Pick one spelling (set "spelling" in the profile) and use it throughout. | machine | low |
+| voice-drift | A draft that reads further from the writer's own voice than their samples usually do: sentence lengths, punctuation, pronouns and function words all measured against a voice file built from writing they did themselves. | Bring back the writer's own rhythm and habits; check the features the finding names against their samples. | machine, judgement | low |
+| facts-changed | An edit that drops or adds figures, drops names, or changes how many negations there are, so the facts or the meaning may have moved. | Check every figure, name and negation against the earlier version; a new figure needs a source. | machine, judgement | medium |
 
 **Before you say it's done:**
 - [ ] At first glance: someone can tell what the page is for and what to click within five seconds.

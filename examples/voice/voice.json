@@ -1,0 +1,174 @@
+{
+  "slopGuardVoice": 1,
+  "version": "2.4.0",
+  "samples": 4,
+  "words": 335,
+  "features": {
+    "sentence length": {
+      "mean": 7.9955,
+      "sd": 0.5871
+    },
+    "sentence spread": {
+      "mean": 0.5215,
+      "sd": 0.099
+    },
+    "short sentences": {
+      "mean": 0.4977,
+      "sd": 0.0875
+    },
+    "long sentences": {
+      "mean": 0,
+      "sd": 0
+    },
+    "paragraph length": {
+      "mean": 83.75,
+      "sd": 4.2647
+    },
+    "word length": {
+      "mean": 3.9898,
+      "sd": 0.1525
+    },
+    "commas": {
+      "mean": 50.4334,
+      "sd": 8.019
+    },
+    "semicolons": {
+      "mean": 0,
+      "sd": 0
+    },
+    "colons": {
+      "mean": 0,
+      "sd": 0
+    },
+    "dashes": {
+      "mean": 0,
+      "sd": 0
+    },
+    "parentheses": {
+      "mean": 0,
+      "sd": 0
+    },
+    "questions": {
+      "mean": 0,
+      "sd": 0
+    },
+    "exclamations": {
+      "mean": 0,
+      "sd": 0
+    },
+    "contractions": {
+      "mean": 95.1075,
+      "sd": 10.0112
+    },
+    "I, me, my": {
+      "mean": 122.7288,
+      "sd": 16.7
+    },
+    "we, us, our": {
+      "mean": 12.1642,
+      "sd": 9.0935
+    },
+    "you, your": {
+      "mean": 0,
+      "sd": 0
+    },
+    "figures": {
+      "mean": 0,
+      "sd": 0
+    }
+  },
+  "functionWords": {
+    "the": 73.907,
+    "of": 5.754,
+    "and": 36.112,
+    "to": 14.785,
+    "a": 17.527,
+    "in": 6.024,
+    "that": 6.181,
+    "is": 0,
+    "it": 27.31,
+    "for": 8.995,
+    "on": 14.978,
+    "with": 0,
+    "as": 0,
+    "was": 3.205,
+    "but": 0,
+    "be": 0,
+    "at": 8.532,
+    "by": 5.556,
+    "this": 8.929,
+    "have": 3.012,
+    "from": 2.976,
+    "or": 0,
+    "not": 11.778,
+    "are": 3.012,
+    "an": 2.976,
+    "they": 0,
+    "which": 0,
+    "you": 0,
+    "one": 2.778,
+    "were": 0,
+    "all": 2.778,
+    "we": 6.181,
+    "there": 0,
+    "their": 0,
+    "been": 0,
+    "has": 0,
+    "would": 0,
+    "will": 0,
+    "can": 3.012,
+    "if": 2.778,
+    "more": 0,
+    "when": 3.012,
+    "so": 2.778,
+    "no": 0,
+    "what": 0,
+    "out": 0,
+    "up": 0,
+    "about": 0,
+    "who": 0,
+    "into": 0,
+    "them": 3.012,
+    "than": 11.971,
+    "its": 0,
+    "some": 3.012,
+    "could": 0,
+    "only": 0,
+    "other": 0,
+    "then": 0,
+    "also": 0,
+    "these": 0,
+    "just": 3.012,
+    "because": 0,
+    "how": 3.012,
+    "most": 0,
+    "even": 0,
+    "any": 0,
+    "very": 0,
+    "much": 0,
+    "such": 0,
+    "through": 0,
+    "those": 0,
+    "both": 0,
+    "each": 0,
+    "might": 0,
+    "while": 3.205,
+    "where": 0,
+    "should": 0,
+    "own": 0,
+    "though": 2.976,
+    "however": 0,
+    "may": 0,
+    "yet": 0,
+    "still": 3.012,
+    "often": 0,
+    "perhaps": 0,
+    "rather": 0,
+    "quite": 0,
+    "really": 0
+  },
+  "spelling": {
+    "gb": 1,
+    "us": 0
+  }
+}

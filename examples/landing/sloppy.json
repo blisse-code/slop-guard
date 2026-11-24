@@ -1,12 +1,12 @@
 {
-  "version": "2.3.0",
+  "version": "2.4.0",
   "context": "web",
   "genre": null,
   "profile": null,
   "counts": {
     "high": 4,
     "medium": 54,
-    "low": 20,
+    "low": 21,
     "hard": 16
   },
   "files": 1,
@@ -648,6 +648,17 @@
       "evidence": "Powered by AI",
       "message": "\"Powered by AI\" describes how it was made, not what it does for the reader.",
       "instead": "Read every line as a customer would. If it describes how the site was made instead of what you do for them, cut it."
+    },
+    {
+      "rule": "reading-grade",
+      "detector": "reading-grade",
+      "severity": "low",
+      "kind": "soft",
+      "file": "sloppy.html",
+      "line": 1,
+      "evidence": "grade 12.1",
+      "message": "Reads at about grade 12.1; this context aims for 9 or below. Shorter sentences and plainer words bring it down.",
+      "instead": "Shorter sentences and plainer words. Keep the hard words the subject needs and cut the rest."
     },
     {
       "rule": "off-scale-values",

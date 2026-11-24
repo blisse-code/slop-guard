@@ -1,5 +1,5 @@
 {
-  "version": "2.3.0",
+  "version": "2.4.0",
   "updated": "2026-11-24",
   "about": "Anti-slop rules for AI-made work, by context. They are design and writing preferences, not a test of who or what made something: judge the result, never guess the author. The rules draw on several sources (see Sources in SKILL.md and NOTICE). 'dont' is the pattern; 'instead' is what to do.",
   "contexts": {
@@ -50,7 +50,8 @@
       "lower": [
         "plain-words",
         "wordy-phrases",
-        "em-dashes"
+        "em-dashes",
+        "reading-grade"
       ]
     },
     "legal": {
@@ -62,7 +63,8 @@
         "stock-transitions",
         "uniform-rhythm",
         "repeated-phrases",
-        "rule-of-three"
+        "rule-of-three",
+        "reading-grade"
       ],
       "lower": [
         "title-case-headings"
@@ -72,7 +74,8 @@
       "label": "Medical, health and safety text",
       "off": [
         "hedge-stacks",
-        "repeated-phrases"
+        "repeated-phrases",
+        "reading-grade"
       ],
       "lower": [
         "wordy-phrases",
@@ -82,7 +85,8 @@
     "academic": {
       "label": "Papers and research reports",
       "off": [
-        "hedge-stacks"
+        "hedge-stacks",
+        "reading-grade"
       ],
       "lower": [
         "stock-transitions",
@@ -102,7 +106,8 @@
         "uniform-rhythm",
         "em-dashes",
         "self-answered-questions",
-        "repeated-phrases"
+        "repeated-phrases",
+        "reading-grade"
       ],
       "lower": [
         "ai-filler-words",
@@ -3035,6 +3040,79 @@
         "judgement"
       ],
       "detector": "unsourced-claim",
+      "severity": "medium",
+      "kind": "soft"
+    },
+    {
+      "id": "reading-grade",
+      "dont": "Copy that reads above the grade its readers need: long sentences full of long words (Flesch-Kincaid; copy and web aim for grade 9, decks 10, documents 13, and a profile can set its own).",
+      "instead": "Shorter sentences and plainer words. Keep the hard words the subject needs and cut the rest.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "reading-grade",
+      "severity": "low",
+      "kind": "soft"
+    },
+    {
+      "id": "spelling-variant",
+      "dont": "Mixing British and American spelling, against the profile's chosen one (colour and color in one piece).",
+      "instead": "Pick one spelling (set \"spelling\" in the profile) and use it throughout.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine"
+      ],
+      "detector": "spelling-variant",
+      "severity": "low",
+      "kind": "soft"
+    },
+    {
+      "id": "voice-drift",
+      "dont": "A draft that reads further from the writer's own voice than their samples usually do: sentence lengths, punctuation, pronouns and function words all measured against a voice file built from writing they did themselves.",
+      "instead": "Bring back the writer's own rhythm and habits; check the features the finding names against their samples.",
+      "contexts": [
+        "web",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "voice-drift",
+      "severity": "low",
+      "kind": "soft"
+    },
+    {
+      "id": "facts-changed",
+      "dont": "An edit that drops or adds figures, drops names, or changes how many negations there are, so the facts or the meaning may have moved.",
+      "instead": "Check every figure, name and negation against the earlier version; a new figure needs a source.",
+      "contexts": [
+        "web",
+        "app",
+        "deck",
+        "doc",
+        "copy"
+      ],
+      "check": [
+        "machine",
+        "judgement"
+      ],
+      "detector": "fact-change",
       "severity": "medium",
       "kind": "soft"
     }
