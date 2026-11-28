@@ -1,5 +1,7 @@
 # slop-guard
 
+> **Now part of [Kosha](https://github.com/blisse-code/kosha)**, a collection of agent skills for running real design projects with AI. This repo stays the home of `slop-guard`, and Kosha ships a pinned copy of it. Install just this skill with `npx kosha-skills add slop-guard`, or the whole collection with `npx kosha-skills add --all`.
+
 Rules for spotting the habits that make AI-made work look generic, and a small checker that finds the ones a machine can see. It covers web pages, app screens, decks, documents, copy, images and code. Each context gets its own rules.
 
 The checker is one Node file with no dependencies. It reads HTML, CSS, SVG, Markdown, plain text, and JavaScript, TypeScript and Python source, or text piped in. A hit is evidence for a reviewer, not a verdict. The rules are preferences about design and writing. They are not a test of who or what made something.
